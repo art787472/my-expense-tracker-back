@@ -11,6 +11,9 @@ namespace 記帳程式後端.DbAccess
         public DbSet<Expense> Expenses { get; set; }
         public DbSet<ImageModel> Images { get; set; }
         public DbSet<RefreshToken> refreshTokens { get; set; }
+        public DbSet<Icon> Icons { get; set; }
+        public DbSet<Category> Categories { get; set; }
+        public DbSet<SubCategory> SubCategories { get; set; }
 
         public ApplicationDbContext (DbContextOptions<ApplicationDbContext> options) : base(options)
         {
