@@ -1,0 +1,6 @@
+@記帳程式後端_HostAddress = http://localhost:5049
+
+GET {{記帳程式後端_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
