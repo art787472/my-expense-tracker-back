@@ -11,7 +11,10 @@ using 記帳程式後端.Models;
 using 記帳程式後端.Service;
 using LoginRequest = 記帳程式後端.Dto.LoginRequest;
 using RegisterRequest = 記帳程式後端.Dto.RegisterRequest;
-
+using System.Security.Cryptography;
+using 記帳程式後端.Dto;
+using Azure.Core;
+using System.IdentityModel.Tokens.Jwt;
 namespace 記帳程式後端.Controllers
 {
     [Route("api/[controller]")]
@@ -50,19 +53,30 @@ namespace 記帳程式後端.Controllers
 
             
 
-            var accessjwtToken = JWTAuth.GenerateJWTToken(claims, DateTime.Now.AddDays(1), _configuration);
-            //var refreshJwtToken = JWTAuth.GenerateJWTToken(claims, DateTime.Now.AddDays(7), _configuration);
-           
-            return  Ok(new ResponseData<LogingResponse>
+            var accessjwtToken = JWTAuth.GenerateJWTToken(claims, DateTime.Now.AddMinutes(5), _configuration);
+            var refreshToken = RefreshTokenAuth.GenerateSecureRefreshToken();
+
+            var refreshTokenModel = new RefreshToken()
+            {
+                AddedDate = DateTime.Now,
+                ExpiryDate = DateTime.Now.AddDays(7),
+                Token = refreshToken,
+                UserId = user.Id
+            };
+
+            await _refreshTokenService.CreateToken(refreshTokenModel);
+
+
+            return  Ok(new ResponseData<AuthenticateResponse>
             (
-                new LogingResponse() { accessToken = accessjwtToken }
+                new AuthenticateResponse() { accessToken = accessjwtToken, refreshToken = refreshToken }
             ));
         }
 
         [HttpPost("logout")]
-        public async Task<ActionResult> Logout()
+        public async Task<ActionResult> Logout([FromBody] LogoutRequest request)
         {
-
+            await _refreshTokenService.DeleteToken(request.RefreshToken);
             await HttpContext.SignOutAsync("CookieScheme");
             return NoContent();
             
@@ -86,7 +100,7 @@ namespace 記帳程式後端.Controllers
         }
 
         [HttpPost("token")]
-        public async Task<ActionResult> RefreshToken([FromBody] RefreshRequest request)
+        public async Task<ActionResult> RefreshToken([FromBody] RefreshTokenRequest request)
         {
             var refreshToken = await _refreshTokenService.GetRefreshTokenByToken(request.RefreshToken);
 
@@ -98,9 +112,46 @@ namespace 記帳程式後端.Controllers
             {
                 return Unauthorized();
             }
-            
-            //var refreshJwtToken = JWTAuth.GenerateJWTToken(claims, DateTime.Now.AddDays(7), _configuration);
-            return Ok();
+
+            var jwtTokenHandler = new JwtSecurityTokenHandler();
+            var token = jwtTokenHandler.ReadJwtToken(request.AccessToke);
+            var expiryUnix = long.Parse(token.Claims.First(c => c.Type == JwtRegisteredClaimNames.Exp).Value);
+            var expiryDate = DateTimeOffset.FromUnixTimeSeconds(expiryUnix).UtcDateTime;
+
+            if (expiryDate > DateTime.UtcNow)
+            {
+                return BadRequest("Access token not expired yet");
+            }
+
+            var principal = RefreshTokenAuth.GetPrincipalFromExpiredToken(request.AccessToke, _configuration); //由原本的accessToken 取得user
+            var username = principal.Identity.Name;
+
+            var user = await _userService.GetUserByAccount(username);
+            if(user.Id != refreshToken.UserId)
+            {
+                return BadRequest();
+            }
+
+            var newAccessToken =  JWTAuth.GenerateJWTToken(principal.Claims, DateTime.Now.AddMinutes(5), _configuration);
+            var newRefreshToken = RefreshTokenAuth.GenerateSecureRefreshToken();
+
+            var refreshTokenModel = new RefreshToken()
+            {
+                AddedDate = DateTime.Now,
+                ExpiryDate = DateTime.Now.AddDays(7),
+                Token = newRefreshToken,
+                UserId = user.Id
+                
+            };
+            await _refreshTokenService.CreateToken(refreshTokenModel);
+
+            //刪除舊的 refreshToken
+            await _refreshTokenService.DeleteToken(refreshToken.Token);
+
+            return Ok(new ResponseData<AuthenticateResponse>
+            (
+                new AuthenticateResponse() { accessToken = newAccessToken, refreshToken = newRefreshToken }
+            ));
         }
     }
 }

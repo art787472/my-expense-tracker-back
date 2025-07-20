@@ -25,7 +25,7 @@ namespace 記帳程式後端.Repository
                     Id = sub.Id,
                     Name = sub.Name,
                     CategoryId = sub.CategoryId,
-                    Icon = iconMap.ContainsKey(sub.Id) ? iconMap[sub.Id] : null
+                    Icon = iconMap.ContainsKey(sub.IconId) ? iconMap[sub.IconId] : null
                 })
                 .ToListAsync();
 

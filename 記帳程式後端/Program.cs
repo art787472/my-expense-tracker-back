@@ -28,19 +28,19 @@ builder.Services.AddScoped<IImageStorageService, CloudinaryStorageService>();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
-//builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
-//{
-//    options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
-//    {
-//        ValidateLifetime = true,
-//        ClockSkew = TimeSpan.Zero,
-//        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["ClientAuthentication:SecurityKey"])),
-//        ValidateIssuer = true,
-//        ValidIssuer = builder.Configuration["ClientAuthentication:Issuer"],
-//        ValidateAudience = true,
-//        ValidAudience = builder.Configuration["ClientAuthentication:Audience"]
-//    };
-//});
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+    {
+        ValidateLifetime = true,
+        ClockSkew = TimeSpan.Zero,
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["ClientAuthentication:SecurityKey"])),
+        ValidateIssuer = true,
+        ValidIssuer = builder.Configuration["ClientAuthentication:Issuer"],
+        ValidateAudience = true,
+        ValidAudience = builder.Configuration["ClientAuthentication:Audience"]
+    };
+});
 
 builder.Services.AddHttpContextAccessor();
 // 設定CORS，讓前端存取
