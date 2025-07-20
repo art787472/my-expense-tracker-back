@@ -12,14 +12,22 @@ namespace 記帳程式後端.Repository
             _dbContext = dbContext;
         }
 
-        public Task<RefreshToken> CreateToken(RefreshToken refreshToken)
+        public async Task<RefreshToken> CreateToken(RefreshToken refreshToken)
         {
-            throw new NotImplementedException();
+            _dbContext.refreshTokens.Add(refreshToken);
+            await _dbContext.SaveChangesAsync();
+            return refreshToken;
         }
 
-        public Task DeleteToken(string token)
+        public async Task DeleteToken(string token)
         {
-            throw new NotImplementedException();
+            var refreshToken = await GetRefreshTokenByToken(token);
+            if(refreshToken == null)
+            {
+                return;
+            }
+            _dbContext.refreshTokens.Remove(refreshToken);
+            await _dbContext.SaveChangesAsync();
         }
 
         public async Task<RefreshToken> GetRefreshTokenByToken(string token)

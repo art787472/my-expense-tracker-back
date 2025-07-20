@@ -1,8 +1,7 @@
 ﻿namespace 記帳程式後端.Dto
 {
-    public class RefreshTokenRequest
+    public class LogoutRequest
     {
         public string RefreshToken { get; set; }
-        public string AccessToke { get; set; }
     }
 }

@@ -11,14 +11,14 @@ namespace 記帳程式後端.Service
             _repository = repository;
         }
 
-        public Task<RefreshToken> CreateToken(RefreshToken refreshToken)
+        public async Task<RefreshToken> CreateToken(RefreshToken refreshToken)
         {
-            throw new NotImplementedException();
+            return await _repository.CreateToken(refreshToken);
         }
 
-        public Task DeleteToken(string token)
+        public async Task DeleteToken(string token)
         {
-            throw new NotImplementedException();
+            await _repository.DeleteToken(token);
         }
 
         public async Task<RefreshToken> GetRefreshTokenByToken(string token)
