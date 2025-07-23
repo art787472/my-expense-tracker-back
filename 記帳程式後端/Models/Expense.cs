@@ -9,6 +9,7 @@ namespace 記帳程式後端.Models
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
+        public string? Name { get; set; }
         
         [DisplayName("日期")]
         public DateTime dateTime { get; set; }
@@ -21,13 +22,13 @@ namespace 記帳程式後端.Models
         [DisplayName("帳戶")]
         public string account { get; set; }
         [DisplayName("圖片一路徑")]
-        public string picPath1 { get; set; }
+        public string? picPath1 { get; set; }
         [DisplayName("圖片二路徑")]
-        public string picPath2 { get; set; }
+        public string? picPath2 { get; set; }
         [DisplayName("縮圖一路徑")]
-        public string smallPicPath1 { get; set; }
+        public string? smallPicPath1 { get; set; }
         [DisplayName("縮圖二路徑")]
-        public string smallPicPath2 { get; set; }
+        public string? smallPicPath2 { get; set; }
 
         public bool isDelete { get; set; }
         public Guid userId { get; set; }

@@ -11,5 +11,6 @@ namespace 記帳程式後端.Models
         public int IconId { get; set; }
         public string Name { get; set; }
         public int CategoryId { get; set; }
+        public Guid? UserId { get; set; }
     }
 }

@@ -14,5 +14,7 @@ namespace 記帳程式後端.Dto
         public string reason { get; set; }
         [DisplayName("帳戶")]
         public string account { get; set; }
+        public string? picPath { get; set; }
+        public string? name { get; set; }
     }
 }

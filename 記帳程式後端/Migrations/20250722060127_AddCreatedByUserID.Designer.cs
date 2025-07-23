@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using 記帳程式後端.DbAccess;
 
@@ -11,9 +12,11 @@ using 記帳程式後端.DbAccess;
 namespace 記帳程式後端.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250722060127_AddCreatedByUserID")]
+    partial class AddCreatedByUserID
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -90,6 +93,7 @@ namespace 記帳程式後端.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Name")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("account")
@@ -107,9 +111,11 @@ namespace 記帳程式後端.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("picPath1")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("picPath2")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("price")
@@ -120,9 +126,11 @@ namespace 記帳程式後端.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("smallPicPath1")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("smallPicPath2")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<Guid>("userId")
@@ -131,26 +139,6 @@ namespace 記帳程式後端.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Expenses");
-                });
-
-            modelBuilder.Entity("記帳程式後端.Models.ExpenseAccount", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<Guid?>("UserId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("ExpenseAccounts");
                 });
 
             modelBuilder.Entity("記帳程式後端.Models.Icon", b =>

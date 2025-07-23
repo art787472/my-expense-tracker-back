@@ -80,7 +80,7 @@ namespace 記帳程式後端.Controllers
             }
             if (expense.userId != _currentUser.UserId) 
             {
-                return Unauthorized();
+                return NotFound();
             }
             await _expenseService.EditExpense(id, request);
             var updatedExpense = await _expenseService.GetExpenseById(id);
@@ -94,7 +94,7 @@ namespace 記帳程式後端.Controllers
             var expense = await _expenseService.GetExpenseById(id);
             if (expense.userId != _currentUser.UserId)
             {
-                return Unauthorized();
+                return NotFound();
             }
             await _expenseService.DeleteExpense(id);
 

@@ -96,6 +96,13 @@ namespace 記帳程式後端.Repository
                 expenses = expenses.Where(e => e.price <= query.MaxPrice.Value);
             }
 
+            if(query.UserId.HasValue)
+            {
+                expenses = expenses.Where(e => e.userId == query.UserId);
+            }
+
+            expenses = expenses.Where(e => !e.isDelete);
+
             return await expenses.ToListAsync();
 
         }

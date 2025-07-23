@@ -2,7 +2,8 @@
 {
     public class AuthenticateResponse
     {
-        public string refreshToken {  get; set; }
+        
         public string accessToken { get; set; }
+        public UserDto? user { get; set; }
     }
 }

@@ -24,11 +24,12 @@ namespace 記帳程式後端.Service
                 reason = request.reason,
                 isDelete = false,
                 price = request.price,
-                picPath1 = string.Empty,
+                picPath1 = request.picPath,
                 picPath2 = string.Empty,
                 smallPicPath1 = string.Empty,
                 smallPicPath2 = string.Empty,
                 userId = userId,
+                Name = request.name
             };
 
             return await _repository.CreateExpense(expense);
