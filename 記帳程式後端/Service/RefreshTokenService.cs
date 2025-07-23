@@ -21,6 +21,11 @@ namespace 記帳程式後端.Service
             await _repository.DeleteToken(token);
         }
 
+        public async Task DeleteTokensByUserId(Guid userId)
+        {
+             await _repository.DeleteTokensByUserId(userId);
+        }
+
         public async Task<RefreshToken> GetRefreshTokenByToken(string token)
         {
             return await _repository.GetRefreshTokenByToken(token);

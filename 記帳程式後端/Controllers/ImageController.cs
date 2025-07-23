@@ -36,7 +36,7 @@ namespace 記帳程式後端.Controllers
                     
                     
 
-            var s = CompressImage.Compress(file, 1);
+            var s = CompressImage.Compress(file, 20);
             reponse = await _imageService.UploadImageAsync(s);
                         
                 

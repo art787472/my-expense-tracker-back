@@ -21,18 +21,32 @@ namespace 記帳程式後端.Repository
 
         public async Task DeleteToken(string token)
         {
-            var refreshToken = await GetRefreshTokenByToken(token);
+            var refreshToken = await _dbContext.refreshTokens.FirstOrDefaultAsync(x => x.Token == token); ;
             if(refreshToken == null)
             {
                 return;
             }
-            _dbContext.refreshTokens.Remove(refreshToken);
+            refreshToken.IsUsed = true;
+            await _dbContext.SaveChangesAsync();
+        }
+
+        public async Task DeleteTokensByUserId(Guid userId)
+        {
+            var refreshTokens = await _dbContext.refreshTokens.Where(x => x.UserId == userId).ToListAsync();
+            foreach (RefreshToken refreshToken in refreshTokens)
+            {
+                refreshToken.IsUsed = true ;
+            }
             await _dbContext.SaveChangesAsync();
         }
 
         public async Task<RefreshToken> GetRefreshTokenByToken(string token)
         {
             var refreshToken = await _dbContext.refreshTokens.FirstOrDefaultAsync(x => x.Token == token);
+            if(refreshToken.IsUsed == true)
+            {
+                return null;
+            }
             return refreshToken;
         }
     }

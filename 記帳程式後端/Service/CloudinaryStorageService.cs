@@ -12,6 +12,7 @@ namespace 記帳程式後端.Service
 
         public CloudinaryStorageService(IConfiguration configuration)
         {
+            _configuration = configuration;
             var url = _configuration["CloudinaryUrl"];
             cloudinary = new Cloudinary(url);
             cloudinary.Api.Secure = true;

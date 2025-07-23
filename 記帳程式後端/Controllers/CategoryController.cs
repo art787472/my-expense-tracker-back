@@ -26,5 +26,17 @@ namespace 記帳程式後端.Controllers
                 return BadRequest(ex.ToString());
             }
         }
+
+        [HttpPost]
+        public async Task<IActionResult> CreateCategory()
+        {
+            return NoContent();
+        }
+
+        [HttpPost("subcategory")]
+        public async Task<IActionResult> CreateSubCategory()
+        {
+            return NoContent();
+        }
     }
 }

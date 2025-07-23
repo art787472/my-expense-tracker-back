@@ -15,6 +15,8 @@ using System.Security.Cryptography;
 using 記帳程式後端.Dto;
 using Azure.Core;
 using System.IdentityModel.Tokens.Jwt;
+using System.Net;
+using Microsoft.AspNetCore.DataProtection;
 namespace 記帳程式後端.Controllers
 {
     [Route("api/[controller]")]
@@ -43,7 +45,7 @@ namespace 記帳程式後端.Controllers
             {
                 return Unauthorized(new { Message = "無效的密碼" });
             }
-            
+            await _refreshTokenService.DeleteTokensByUserId(user.Id);
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.Name, user.Account),
@@ -66,18 +68,46 @@ namespace 記帳程式後端.Controllers
 
             await _refreshTokenService.CreateToken(refreshTokenModel);
 
+            
+            Response.Cookies.Append("refreshToken", refreshToken, new CookieOptions { 
+                HttpOnly = true,
+                Path = "/",
+                MaxAge = TimeSpan.FromDays(7),
+                Secure = false, // 開發環境設為 false
+                SameSite = SameSiteMode.Lax // 改為 Lax 或 None
+
+            });
+            
+
+            var userDto = new UserDto() { Account = user.Account, Id = user.Id };
 
             return  Ok(new ResponseData<AuthenticateResponse>
             (
-                new AuthenticateResponse() { accessToken = accessjwtToken, refreshToken = refreshToken }
+                new AuthenticateResponse() { accessToken = accessjwtToken,  user = userDto }
             ));
         }
 
         [HttpPost("logout")]
         public async Task<ActionResult> Logout([FromBody] LogoutRequest request)
         {
-            await _refreshTokenService.DeleteToken(request.RefreshToken);
-            await HttpContext.SignOutAsync("CookieScheme");
+            var refreshToken = Request.Cookies["refreshToken"];
+            if(refreshToken == null)
+            {
+                return Unauthorized();
+            }
+            await _refreshTokenService.DeleteToken(refreshToken);
+           
+            Response.Cookies.Delete("refreshToken", new CookieOptions
+            {
+                HttpOnly = true,
+                Path = "/",
+                MaxAge = TimeSpan.FromDays(7),
+                Secure = false, // 開發環境設為 false
+                SameSite = SameSiteMode.Lax // 改為 Lax 或 None
+
+            });
+            Response.Cookies.Delete("token");
+
             return NoContent();
             
         }
@@ -102,37 +132,42 @@ namespace 記帳程式後端.Controllers
         [HttpPost("token")]
         public async Task<ActionResult> RefreshToken([FromBody] RefreshTokenRequest request)
         {
-            var refreshToken = await _refreshTokenService.GetRefreshTokenByToken(request.RefreshToken);
-
-            if(refreshToken == null)
+            var refreshTokenRequest = Request.Cookies["refreshToken"];
+            if (refreshTokenRequest == null)
             {
-                return Unauthorized();
+                return Unauthorized("cookie 中沒有 refreshToken");
             }
-            if(refreshToken.ExpiryDate < DateTime.Now)
+            var refreshToken = await _refreshTokenService.GetRefreshTokenByToken(refreshTokenRequest);
+
+            if (refreshToken == null)
             {
-                return Unauthorized();
+                return Unauthorized("refreshToken 不存在");
+            }
+            if (refreshToken.ExpiryDate < DateTime.Now)
+            {
+                return Unauthorized("refreshToken 已過期");
             }
 
             var jwtTokenHandler = new JwtSecurityTokenHandler();
-            var token = jwtTokenHandler.ReadJwtToken(request.AccessToke);
+            var token = jwtTokenHandler.ReadJwtToken(request.AccessToken);
             var expiryUnix = long.Parse(token.Claims.First(c => c.Type == JwtRegisteredClaimNames.Exp).Value);
             var expiryDate = DateTimeOffset.FromUnixTimeSeconds(expiryUnix).UtcDateTime;
 
             if (expiryDate > DateTime.UtcNow)
             {
-                return BadRequest("Access token not expired yet");
+                return BadRequest("Access token 尚未過期");
             }
 
-            var principal = RefreshTokenAuth.GetPrincipalFromExpiredToken(request.AccessToke, _configuration); //由原本的accessToken 取得user
+            var principal = RefreshTokenAuth.GetPrincipalFromExpiredToken(request.AccessToken, _configuration); //由原本的accessToken 取得user
             var username = principal.Identity.Name;
 
             var user = await _userService.GetUserByAccount(username);
-            if(user.Id != refreshToken.UserId)
+            if (user.Id != refreshToken.UserId)
             {
                 return BadRequest();
             }
 
-            var newAccessToken =  JWTAuth.GenerateJWTToken(principal.Claims, DateTime.Now.AddMinutes(5), _configuration);
+            var newAccessToken = JWTAuth.GenerateJWTToken(principal.Claims, DateTime.Now.AddMinutes(5), _configuration);
             var newRefreshToken = RefreshTokenAuth.GenerateSecureRefreshToken();
 
             var refreshTokenModel = new RefreshToken()
@@ -141,16 +176,24 @@ namespace 記帳程式後端.Controllers
                 ExpiryDate = DateTime.Now.AddDays(7),
                 Token = newRefreshToken,
                 UserId = user.Id
-                
+
             };
             await _refreshTokenService.CreateToken(refreshTokenModel);
 
             //刪除舊的 refreshToken
             await _refreshTokenService.DeleteToken(refreshToken.Token);
 
+            HttpContext.Response.Cookies.Append("refreshToken", newRefreshToken,new CookieOptions(){ HttpOnly = true,
+                Path = "/",
+            MaxAge = TimeSpan.FromDays(7),
+                Secure = false, // 開發環境設為 false
+                SameSite = SameSiteMode.Lax // 改為 Lax 或 None);
+
+                });
+
             return Ok(new ResponseData<AuthenticateResponse>
             (
-                new AuthenticateResponse() { accessToken = newAccessToken, refreshToken = newRefreshToken }
+                new AuthenticateResponse() { accessToken = newAccessToken }
             ));
         }
     }

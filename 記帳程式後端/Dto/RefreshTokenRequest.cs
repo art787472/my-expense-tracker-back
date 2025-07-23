@@ -2,7 +2,7 @@
 {
     public class RefreshTokenRequest
     {
-        public string RefreshToken { get; set; }
-        public string AccessToke { get; set; }
+        
+        public string AccessToken { get; set; }
     }
 }
