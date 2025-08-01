@@ -1,6 +1,6 @@
 ﻿using Azure.Core;
 using 記帳程式後端.Auth;
-using 記帳程式後端.Dto;
+using 記帳程式後端.Dto.Request;
 using 記帳程式後端.Models;
 using 記帳程式後端.Repository;
 
@@ -39,9 +39,19 @@ namespace 記帳程式後端.Service
             return await _repository.GetUserByAccount(account);
         }
 
+        public async Task<User> GetUserByGoogleId(string googleId)
+        {
+            return await _repository.GetUserByGoogleId(googleId);
+        }
+
         public async Task<User> GetUserById(Guid id)
         {
             return await _repository.GetUserById(id);
+        }
+
+        public async Task UpdateUser(User user)
+        {
+            await _repository.UpdateUser(user);
         }
     }
 }

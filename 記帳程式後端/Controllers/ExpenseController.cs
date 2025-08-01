@@ -3,12 +3,13 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using 記帳程式後端.Dto;
+using 記帳程式後端.Dto.Request;
 using 記帳程式後端.Models;
 using 記帳程式後端.Service;
 
 namespace 記帳程式後端.Controllers
 {
-    [Authorize]
+    //[Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public class ExpenseController : Controller
@@ -23,27 +24,24 @@ namespace 記帳程式後端.Controllers
         }
         
         [HttpGet]
-        public async Task<ActionResult<string>> GetExpensesAsync([FromQuery] QueryExpenseRequest query)
+        public async Task<ActionResult> GetExpensesAsync([FromQuery] QueryExpenseRequest query)
         {
             var expenses = await _expenseService.GetExpenses(query);
-            return Ok(expenses);
+            return Ok(new ResponseData<IEnumerable<ExpenseDto>>(expenses));
         }
-        [HttpGet("test-error")]
-        public IActionResult TestError()
-        {
-            Console.WriteLine("About to throw exception...");
-            throw new Exception("This is a test exception");
-        }
+
 
         
         [HttpGet("{id}")]
-        public async Task<ActionResult<Expense>> GetExpenseById(int id)
+        public async Task<ActionResult<ExpenseDto>> GetExpenseById(int id)
         {
             
-           Expense expense = await _expenseService.GetExpenseById(id);
-           if(expense == null)
+           var expense = await _expenseService.GetExpenseById(id);
+            
+           
+           if(expense==null)
             {
-                return NotFound();
+                return NotFound(new Response(404, false));
             }
             return Ok(expense);
         }
@@ -71,20 +69,20 @@ namespace 記帳程式後端.Controllers
 
         
         [HttpPut("{id}")]
-        public async Task<ActionResult<Expense>> EditExpense(int id, [FromBody] ExpenseRequest request)
+        public async Task<ActionResult> EditExpense(int id, [FromBody] ExpenseRequest request)
         {
             var expense = await _expenseService.GetExpenseById(id);
             if (expense == null)
             {
-                return NotFound();
+                return NotFound(new Response(404, false));
             }
-            if (expense.userId != _currentUser.UserId) 
+            if (expense.User.Id != _currentUser.UserId) 
             {
-                return NotFound();
+                return NotFound(new Response(404, false));
             }
             await _expenseService.EditExpense(id, request);
             var updatedExpense = await _expenseService.GetExpenseById(id);
-            return Ok(updatedExpense);
+            return Ok(new ResponseData<ExpenseDto>(updatedExpense));
         }
 
 
@@ -92,9 +90,9 @@ namespace 記帳程式後端.Controllers
         public async Task<ActionResult> Delete(int id)
         {
             var expense = await _expenseService.GetExpenseById(id);
-            if (expense.userId != _currentUser.UserId)
+            if (expense.User.Id != _currentUser.UserId)
             {
-                return NotFound();
+                return NotFound(new Response(404, false));
             }
             await _expenseService.DeleteExpense(id);
 

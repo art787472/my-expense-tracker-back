@@ -15,9 +15,12 @@
         }
         public ResponseData(int code, String message)
         {
+            
             this.Code = code;
             this.Message = message;
         }
+
+        
 
     }
 }

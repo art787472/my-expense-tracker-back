@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel;
 
-namespace 記帳程式後端.Dto
+namespace 記帳程式後端.Dto.Request
 {
     public class RegisterRequest
     {

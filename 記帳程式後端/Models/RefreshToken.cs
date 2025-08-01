@@ -2,7 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace 記帳程式後端.Dto
+namespace 記帳程式後端.Models
 {
     public class RefreshToken
     {

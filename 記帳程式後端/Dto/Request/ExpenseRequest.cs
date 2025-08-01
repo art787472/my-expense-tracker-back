@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel;
 
-namespace 記帳程式後端.Dto
+namespace 記帳程式後端.Dto.Request
 {
     public class ExpenseRequest
     {
@@ -9,12 +9,12 @@ namespace 記帳程式後端.Dto
         [DisplayName("金額")]
         public int price { get; set; }
         [DisplayName("類別")]
-        public string category { get; set; }
+        public int categoryId { get; set; }
         [DisplayName("消費目的")]
-        public string reason { get; set; }
+        public int subcategoryId { get; set; }
         [DisplayName("帳戶")]
-        public string account { get; set; }
-        public string? picPath { get; set; }
+        public int accountId { get; set; }
+        public int? imageId { get; set; }
         public string? name { get; set; }
     }
 }

@@ -1,6 +1,5 @@
-﻿using 記帳程式後端.Dto;
-using 記帳程式後端.Models;
-using LoginRequest = 記帳程式後端.Dto.LoginRequest;
+﻿using 記帳程式後端.Models;
+using LoginRequest = 記帳程式後端.Dto.Request.LoginRequest;
 
 namespace 記帳程式後端.Repository
 {
@@ -11,5 +10,7 @@ namespace 記帳程式後端.Repository
 
         Task<Guid> CreateUser(User user);
         Task<User> GetUserByAccount(string account);
+        Task UpdateUser(User user);
+        Task<User> GetUserByGoogleId(string googleId);
     }
 }

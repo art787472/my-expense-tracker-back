@@ -43,5 +43,24 @@ namespace 記帳程式後端.Repository
         {
             return await _dbContext.Users.FirstOrDefaultAsync(x => x.Account == account);
         }
+
+        public async Task UpdateUser(User user)
+        {
+            var olduser = _dbContext.Users.Find(user.Id);
+            if (olduser != null)
+            {
+                olduser.IsEmailVerified = user.IsEmailVerified;
+                olduser.Email = user.Email;
+            }
+
+            _dbContext.Users.Update(olduser);
+            await _dbContext.SaveChangesAsync();
+        }
+
+        public async Task<User> GetUserByGoogleId(string googleId)
+        {
+            var user = await _dbContext.Users.FirstOrDefaultAsync(x => x.GoogleId == googleId);
+            return user;
+        }
     }
 }

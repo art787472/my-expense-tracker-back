@@ -16,19 +16,19 @@ namespace 記帳程式後端.Models
         [DisplayName("金額")]
         public int price { get; set; }
         [DisplayName("類別")]
-        public string category { get; set; }
+        public int categoryId { get; set; }
         [DisplayName("消費目的")]
-        public string reason { get; set; }
+        public int subcategoryId { get; set; }
         [DisplayName("帳戶")]
-        public string account { get; set; }
+        public int accountId { get; set; }
         [DisplayName("圖片一路徑")]
-        public string? picPath1 { get; set; }
+        public int? picPath1 { get; set; }
         [DisplayName("圖片二路徑")]
-        public string? picPath2 { get; set; }
+        public int? picPath2 { get; set; }
         [DisplayName("縮圖一路徑")]
-        public string? smallPicPath1 { get; set; }
+        public int? smallPicPath1 { get; set; }
         [DisplayName("縮圖二路徑")]
-        public string? smallPicPath2 { get; set; }
+        public int? smallPicPath2 { get; set; }
 
         public bool isDelete { get; set; }
         public Guid userId { get; set; }

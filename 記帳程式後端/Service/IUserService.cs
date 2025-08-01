@@ -1,5 +1,5 @@
-﻿using RegisterRequest = 記帳程式後端.Dto.RegisterRequest;
-using LoginRequest = 記帳程式後端.Dto.LoginRequest;
+﻿using RegisterRequest = 記帳程式後端.Dto.Request.RegisterRequest;
+using LoginRequest = 記帳程式後端.Dto.Request.LoginRequest;
 using 記帳程式後端.Models;
 using Microsoft.AspNetCore.Identity.Data;
 
@@ -10,6 +10,9 @@ namespace 記帳程式後端.Service
         Task<User> GetUser(LoginRequest request);
         Task<User> GetUserById(Guid id);
         Task<Guid> CreateUser(RegisterRequest registerRequest);
+
         Task<User> GetUserByAccount(string account);
+        Task UpdateUser(User user);
+        Task<User> GetUserByGoogleId(string googleId);
     }
 }

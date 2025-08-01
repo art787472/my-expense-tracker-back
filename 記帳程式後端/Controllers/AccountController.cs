@@ -9,14 +9,15 @@ using 記帳程式後端.Auth;
 using 記帳程式後端.Dto.Response;
 using 記帳程式後端.Models;
 using 記帳程式後端.Service;
-using LoginRequest = 記帳程式後端.Dto.LoginRequest;
-using RegisterRequest = 記帳程式後端.Dto.RegisterRequest;
+using LoginRequest = 記帳程式後端.Dto.Request.LoginRequest;
+using RegisterRequest = 記帳程式後端.Dto.Request.RegisterRequest;
 using System.Security.Cryptography;
 using 記帳程式後端.Dto;
 using Azure.Core;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net;
 using Microsoft.AspNetCore.DataProtection;
+using 記帳程式後端.Dto.Request;
 namespace 記帳程式後端.Controllers
 {
     [Route("api/[controller]")]
@@ -38,12 +39,12 @@ namespace 記帳程式後端.Controllers
             var user = await _userService.GetUserByAccount(request.Account);
             if(user == null)
             {
-                return NotFound(new { Message = "使用者不存在" });
+                return NotFound(new Response(404, "使用者不存在" ));
             }
 
             if(!PwdCrypto.Verify(request.Password, user.password))
             {
-                return Unauthorized(new { Message = "無效的密碼" });
+                return NotFound(new Response(404, "無效的密碼" ));
             }
             await _refreshTokenService.DeleteTokensByUserId(user.Id);
             var claims = new List<Claim>
@@ -83,8 +84,13 @@ namespace 記帳程式後端.Controllers
 
             return  Ok(new ResponseData<AuthenticateResponse>
             (
-                new AuthenticateResponse() { accessToken = accessjwtToken,  user = userDto }
-            ));
+
+                new AuthenticateResponse() { accessToken = accessjwtToken, user = userDto, }
+
+            )
+            {
+                Message = "登入成功"
+            });
         }
 
         [HttpPost("logout")]
@@ -118,7 +124,7 @@ namespace 記帳程式後端.Controllers
             var user = await _userService.GetUserByAccount(request.Account);
             if(user != null)
             {
-                return Conflict("帳號已經存在");
+                return Conflict(new Response(409,"帳號已經存在"));
             }
             var id = await _userService.CreateUser(request);
             var createdUser = _userService.GetUserById(id);
@@ -135,17 +141,17 @@ namespace 記帳程式後端.Controllers
             var refreshTokenRequest = Request.Cookies["refreshToken"];
             if (refreshTokenRequest == null)
             {
-                return Unauthorized("cookie 中沒有 refreshToken");
+                return Unauthorized(new Response(401,"請求沒有 refreshToken"));
             }
             var refreshToken = await _refreshTokenService.GetRefreshTokenByToken(refreshTokenRequest);
 
             if (refreshToken == null)
             {
-                return Unauthorized("refreshToken 不存在");
+                return Unauthorized(new Response(401, "refreshToken 不存在"));
             }
             if (refreshToken.ExpiryDate < DateTime.Now)
             {
-                return Unauthorized("refreshToken 已過期");
+                return Unauthorized(new Response(401, "refreshToken 已過期"));
             }
 
             var jwtTokenHandler = new JwtSecurityTokenHandler();
@@ -155,7 +161,7 @@ namespace 記帳程式後端.Controllers
 
             if (expiryDate > DateTime.UtcNow)
             {
-                return BadRequest("Access token 尚未過期");
+                return BadRequest(new Response(400, "Access token 尚未過期"));
             }
 
             var principal = RefreshTokenAuth.GetPrincipalFromExpiredToken(request.AccessToken, _configuration); //由原本的accessToken 取得user
@@ -164,7 +170,7 @@ namespace 記帳程式後端.Controllers
             var user = await _userService.GetUserByAccount(username);
             if (user.Id != refreshToken.UserId)
             {
-                return BadRequest();
+                return Unauthorized(new Response(401, "使用者不相符"));
             }
 
             var newAccessToken = JWTAuth.GenerateJWTToken(principal.Claims, DateTime.Now.AddMinutes(5), _configuration);
@@ -185,7 +191,7 @@ namespace 記帳程式後端.Controllers
 
             HttpContext.Response.Cookies.Append("refreshToken", newRefreshToken,new CookieOptions(){ HttpOnly = true,
                 Path = "/",
-            MaxAge = TimeSpan.FromDays(7),
+                MaxAge = TimeSpan.FromDays(7),
                 Secure = false, // 開發環境設為 false
                 SameSite = SameSiteMode.Lax // 改為 Lax 或 None);
 
@@ -194,7 +200,10 @@ namespace 記帳程式後端.Controllers
             return Ok(new ResponseData<AuthenticateResponse>
             (
                 new AuthenticateResponse() { accessToken = newAccessToken }
-            ));
+            )
+            {
+                Message="token成功換發"
+            });
         }
     }
 }

@@ -20,23 +20,29 @@ namespace 記帳程式後端.Controllers
             try
             {
                 var res = await _categoryService.GetCategories();
+                if (res == null)
+                {
+                    return NotFound(new Response(404, false));
+                }
                 return Ok(new ResponseData<List<CategoryDto>>(res));
             }
-            catch (Exception ex) {
-                return BadRequest(ex.ToString());
+            catch (Exception ex) 
+            {
+                return BadRequest(new Response(400, false, ex.Message));
             }
+            
         }
 
         [HttpPost]
         public async Task<IActionResult> CreateCategory()
         {
-            return NoContent();
+            throw new NotImplementedException();
         }
 
         [HttpPost("subcategory")]
         public async Task<IActionResult> CreateSubCategory()
         {
-            return NoContent();
+            throw new NotImplementedException();
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using 記帳程式後端.DbAccess;
 using 記帳程式後端.Dto;
+using 記帳程式後端.Dto.Request;
 using 記帳程式後端.Models;
 using 記帳程式後端.Repository;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
@@ -19,15 +20,13 @@ namespace 記帳程式後端.Service
             Expense expense = new Expense() 
             {
                 dateTime = request.dateTime,
-                account = request.account,
-                category = request.category,
-                reason = request.reason,
+                accountId = request.accountId,
+                categoryId = request.categoryId,
+                subcategoryId = request.subcategoryId,
                 isDelete = false,
                 price = request.price,
-                picPath1 = request.picPath,
-                picPath2 = string.Empty,
-                smallPicPath1 = string.Empty,
-                smallPicPath2 = string.Empty,
+                picPath1 = request.imageId,
+                
                 userId = userId,
                 Name = request.name
             };
@@ -41,7 +40,7 @@ namespace 記帳程式後端.Service
 
 
 
-        public async Task<Expense> GetExpenseById(int id)
+        public async Task<ExpenseDto?> GetExpenseById(int id)
         {
             var result =  await _repository.GetExpenseById(id);
             return result;
@@ -60,7 +59,7 @@ namespace 記帳程式後端.Service
             await _repository.EditExpense(id, request);
         }
 
-        public async Task<IEnumerable<Expense>> GetExpenses(QueryExpenseRequest query)
+        public async Task<IEnumerable<ExpenseDto>> GetExpenses(QueryExpenseRequest query)
         {
             return await _repository.GetExpenses(query);
         }
