@@ -62,5 +62,11 @@ namespace 記帳程式後端.Repository
             var user = await _dbContext.Users.FirstOrDefaultAsync(x => x.GoogleId == googleId);
             return user;
         }
+
+        public async Task<User> GetUserByGithubId(string githubId)
+        {
+            var user = await _dbContext.Users.FirstOrDefaultAsync(x => x.GithubId == githubId);
+            return user;
+        }
     }
 }

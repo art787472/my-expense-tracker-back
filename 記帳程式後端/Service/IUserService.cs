@@ -14,5 +14,6 @@ namespace 記帳程式後端.Service
         Task<User> GetUserByAccount(string account);
         Task UpdateUser(User user);
         Task<User> GetUserByGoogleId(string googleId);
+        Task<User> GetUserByGithubId(string githubId);
     }
 }

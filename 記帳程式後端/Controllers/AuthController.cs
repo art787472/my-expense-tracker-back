@@ -1,7 +1,9 @@
-﻿using System.Security.Claims;
+﻿using System.Net.Http;
+using System.Security.Claims;
 using System.Text.Json;
 using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
+
 using 記帳程式後端.Auth;
 using 記帳程式後端.Dto;
 using 記帳程式後端.Dto.Response;
@@ -11,7 +13,7 @@ using RegisterRequest = 記帳程式後端.Dto.Request.RegisterRequest;
 
 namespace 記帳程式後端.Controllers
 {
-    [Route("google")]
+    [Route("auth")]
     [ApiController]
     public class AuthController : Controller
 
@@ -25,8 +27,49 @@ namespace 記帳程式後端.Controllers
             _refreshTokenService = refreshTokenService;
             _userService = userService;
         }
-        [HttpGet("callback")]
-        public async Task<IActionResult> Index([FromQuery] string code)
+        [HttpGet("github/callback")]
+        public async Task<IActionResult> GithubLogin([FromQuery] string code)
+        {
+            var tokenUrl = "https://github.com/login/oauth/access_token";
+            HttpClient httpClient = new HttpClient();
+            var formData = new List<KeyValuePair<string, string>>
+            {
+                new KeyValuePair<string, string>("code", code),
+                new KeyValuePair<string, string>("client_id", _configuration["GithubAuth:ClientId"]),
+                new KeyValuePair<string, string>("client_secret", _configuration["GithubAuth:ClientSecret"]),
+                new KeyValuePair<string, string>("redirect_uri", _configuration["GithubAuth:RedirectUri"])
+            };
+
+            var content = new FormUrlEncodedContent(formData);
+            httpClient.DefaultRequestHeaders.Add("Accept", "application/json");
+            var response = await httpClient.PostAsync(tokenUrl, content);
+            response.EnsureSuccessStatusCode();
+
+            var jsonResponse = await response.Content.ReadAsStringAsync();
+            var tokenResponse = Newtonsoft.Json.JsonConvert.DeserializeObject<GitHubTokenResponse>(jsonResponse); // Fix: Use JsonConvert.DeserializeObject
+
+            var accessToken = tokenResponse.access_token;
+            if (string.IsNullOrEmpty(accessToken))
+            {
+                return BadRequest("Failed to get access token from GitHub");
+            }
+            httpClient.DefaultRequestHeaders.Clear();
+            httpClient.DefaultRequestHeaders.Add("User-Agent", "MyApp/1.0"); // 必須設定
+            httpClient.DefaultRequestHeaders.Add("Accept", "application/vnd.github.v3+json");
+            httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);
+            var userInfoResponse = await httpClient.GetAsync("https://api.github.com/user");
+            var userJsonResponse = await userInfoResponse.Content.ReadAsStringAsync();
+            var githubUserInfo = Newtonsoft.Json.JsonConvert.DeserializeObject<GitHubUserInfo>(userJsonResponse); // Fix: Use JsonConvert.DeserializeObject
+            
+            var emailResponse = await httpClient.GetAsync("https://api.github.com/user/emails");
+            var emailJsonResponse = await emailResponse.Content.ReadAsStringAsync();
+            List<GitHubEmail> emailsInfo = Newtonsoft.Json.JsonConvert.DeserializeObject<List<GitHubEmail>>(emailJsonResponse);
+
+            var user = await FindOrCreateGithubUser(githubUserInfo, emailsInfo);
+            return await GenerateAuthResponse(user);
+        }
+            [HttpGet("google/callback")]
+        public async Task<IActionResult> GoogleLogin([FromQuery] string code)
         {
             HttpClient httpClient = new HttpClient();
             
@@ -45,17 +88,17 @@ namespace 記帳程式後端.Controllers
                 response.EnsureSuccessStatusCode();
 
                 var jsonResponse = await response.Content.ReadAsStringAsync();
-                var tokenResponse = JsonSerializer.Deserialize<GoogleTokenResponse>(jsonResponse);
+                var tokenResponse =  JsonSerializer.Deserialize<GoogleTokenResponse>(jsonResponse);
 
                 if (tokenResponse == null || string.IsNullOrEmpty(tokenResponse.access_token))
                 {
                     return BadRequest("Failed to get access token from Google");
                 }
                 httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", tokenResponse.access_token);
-            var userInfoResponse = await httpClient.GetAsync($"https://www.googleapis.com/oauth2/v1/userinfo?alt=json");
+                var userInfoResponse = await httpClient.GetAsync($"https://www.googleapis.com/oauth2/v1/userinfo?alt=json");
                 userInfoResponse.EnsureSuccessStatusCode();
                 var userInfoJson = await userInfoResponse.Content.ReadAsStringAsync();
-                var userInfo = JsonSerializer.Deserialize<GoogleUserInfo>(userInfoJson);
+                var userInfo =  JsonSerializer.Deserialize<GoogleUserInfo>(userInfoJson);
                 if (userInfo == null)
                 {
                     return BadRequest("Failed to get user info from Google");
@@ -67,7 +110,7 @@ namespace 記帳程式後端.Controllers
                 return await GenerateAuthResponse(user);
             
         }
-            private async Task<User> FindOrCreateGoogleUser(GoogleUserInfo googleUserInfo)
+        private async Task<User> FindOrCreateGoogleUser(GoogleUserInfo googleUserInfo)
         {
             // 1. 先用 GoogleId 查找
             var user = await _userService.GetUserByGoogleId(googleUserInfo.id);
@@ -113,6 +156,51 @@ namespace 記帳程式後端.Controllers
             return user;
         }
 
+        private async Task<User> FindOrCreateGithubUser(GitHubUserInfo githubUser, List<GitHubEmail> gitHubEmails)
+        {
+            var user = await _userService.GetUserByGithubId(githubUser.Id);
+            var email = gitHubEmails.First().Email;
+            if (user != null)
+            {
+                // 更新用戶資訊
+                user.Account = email; // 如果你的 Account 就是 email
+                                                     // 可以更新其他欄位如 Name, PictureUrl 等
+                await _userService.UpdateUser(user);
+                return user;
+            }
+
+            // 2. 用 Email 查找是否已有帳號 (假設 Account 就是 email)
+            user = await _userService.GetUserByAccount(email);
+
+            if (user != null)
+            {
+                // 綁定 Google 帳號到現有用戶
+                user.GithubId = githubUser.Id;
+                await _userService.UpdateUser(user);
+                return user;
+            }
+
+            user = new User
+            {
+                Id = new Guid(),
+                Account = email,
+                GithubId = githubUser.Id,
+                // 可以加其他 Google 用戶資訊
+                Name = githubUser.Login,
+                
+                CreatedAt = DateTime.Now,
+                IsEmailVerified = true // Google 用戶 email 已驗證
+            };
+            RegisterRequest registerRequest = new RegisterRequest
+            {
+                Account = email,
+                Password = "GithubLogin"
+            };
+            await _userService.CreateUser(registerRequest);
+            return user;
+
+        }
+
         // 使用你原本的認證邏輯
         private async Task<IActionResult> GenerateAuthResponse(User user)
         {
@@ -121,11 +209,11 @@ namespace 記帳程式後端.Controllers
 
             // 建立 Claims
             var claims = new List<Claim>
-    {
-        new Claim(ClaimTypes.Name, user.Account),
-        new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-        new Claim(ClaimTypes.Role, "User")
-    };
+            {
+                new Claim(ClaimTypes.Name, user.Account),
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                new Claim(ClaimTypes.Role, "User")
+            };
 
             // 生成 JWT Token
             var accessjwtToken = JWTAuth.GenerateJWTToken(claims, DateTime.Now.AddMinutes(5), _configuration);

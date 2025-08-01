@@ -16,6 +16,7 @@
 
         // Google 登入
         public string? GoogleId { get; set; }
+        public string? GithubId { get; set; }
 
         // 共同欄位
         public bool IsEmailVerified { get; set; }

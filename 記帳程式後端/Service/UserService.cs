@@ -39,6 +39,11 @@ namespace 記帳程式後端.Service
             return await _repository.GetUserByAccount(account);
         }
 
+        public async Task<User> GetUserByGithubId(string githubId)
+        {
+            return await _repository.GetUserByGithubId(githubId);
+        }
+
         public async Task<User> GetUserByGoogleId(string googleId)
         {
             return await _repository.GetUserByGoogleId(googleId);
