@@ -38,7 +38,7 @@ namespace 記帳程式後端.Repository
             var subCategory = await _dbContext.SubCategories.FindAsync(ex.subcategoryId);
             var account = await _dbContext.ExpenseAccounts.FindAsync(ex.accountId);
             var user = await _dbContext.Users.FindAsync(ex.userId);
-            var image = ex.picPath1.HasValue ? await _dbContext.Images.FindAsync((long)ex.picPath1.Value) : null;
+            var img = await _dbContext.Images.FindAsync(ex.picPath1);
 
             return new ExpenseDto
             {
@@ -49,7 +49,7 @@ namespace 記帳程式後端.Repository
                 CategoryId = category.Id,
                 SubCategoryId = subCategory.Id,
                 AccountId = account.Id,
-                ImagePath = image?.url,
+                ImagePath = img.StorageKey,
                 isDelete = ex.isDelete,
                 User = user != null ? new UserDto { Account = user.Account, Id = user.Id } : null
             };
@@ -94,8 +94,9 @@ namespace 記帳程式後端.Repository
                                 join sc in _dbContext.SubCategories on e.subcategoryId equals sc.Id
                                 join acc in _dbContext.ExpenseAccounts on e.accountId equals acc.Id
                                 join u in _dbContext.Users on e.userId equals u.Id
-                                join img in _dbContext.Images on (long?)e.picPath1 equals img.Id into imgGroup
-                                from img in imgGroup.DefaultIfEmpty() // Left join for nullable Image
+                                join img in _dbContext.Images
+                        on e.picPath1.HasValue ? e.picPath1.Value : 0 equals img.Id into imgJoin
+                                from img in imgJoin.DefaultIfEmpty()
                                 where !e.isDelete
                                 select new
                                 {
@@ -158,7 +159,7 @@ namespace 記帳程式後端.Repository
                 CategoryId = x.Category.Id,
                 SubCategoryId = x.SubCategory.Id,
                 AccountId = x.Account.Id,
-                ImagePath = x.Image.url,
+                ImagePath = x.Image.StorageKey,
                 isDelete = x.Expense.isDelete,
                 User = new UserDto { Account = x.User.Account, Id = x.User.Id }            }).ToListAsync();
 
@@ -172,8 +173,9 @@ namespace 記帳程式後端.Repository
                                 join sc in _dbContext.SubCategories on e.subcategoryId equals sc.Id
                                 join acc in _dbContext.ExpenseAccounts on e.accountId equals acc.Id
                                 join u in _dbContext.Users on e.userId equals u.Id
-                                join img in _dbContext.Images on (long?)e.picPath1 equals img.Id into imgGroup
-                                from img in imgGroup.DefaultIfEmpty()
+                                join img in _dbContext.Images
+                        on e.picPath1.HasValue ? e.picPath1.Value : 0 equals img.Id into imgJoin
+                                from img in imgJoin.DefaultIfEmpty()
                                 where !e.isDelete
                                 select new
                                 {
@@ -224,10 +226,68 @@ namespace 記帳程式後端.Repository
                     CategoryId = x.Category.Id,
                     SubCategoryId = x.SubCategory.Id,
                     AccountId = x.Account.Id,
-                    ImagePath = x.Image.url,
+                    ImagePath = x.Image.StorageKey,
                     isDelete = x.Expense.isDelete,
                     User = new UserDto { Account = x.User.Account, Id = x.User.Id },
                 }).ToListAsync();
+        }
+
+        public async Task<int> GetExpenseTotal(QueryExpenseRequest query)
+        {
+            var expensesQuery = _dbContext.Expenses.AsQueryable();
+            if (query.CategoryId != null)
+            {
+                expensesQuery = expensesQuery.Where(x => x.categoryId == query.CategoryId);
+            }
+
+            if (query.AccountId != null)
+            {
+                expensesQuery = expensesQuery.Where(x => x.accountId == query.AccountId);
+            }
+
+            if (query.SubcategoryId != null)
+            {
+                expensesQuery = expensesQuery.Where(x => x.subcategoryId == query.SubcategoryId);
+            }
+
+            if (query.StartDate.HasValue)
+            {
+                expensesQuery = expensesQuery.Where(x => x.dateTime >= query.StartDate.Value);
+            }
+
+            if (query.EndDate.HasValue)
+            {
+                expensesQuery = expensesQuery.Where(x => x.dateTime <= query.EndDate.Value);
+            }
+
+            if (query.MinPrice.HasValue)
+            {
+                expensesQuery = expensesQuery.Where(x => x.price >= query.MinPrice.Value);
+            }
+
+            if (query.MaxPrice.HasValue)
+            {
+                expensesQuery = expensesQuery.Where(x => x.price <= query.MaxPrice.Value);
+            }
+
+            if (query.UserId.HasValue)
+            {
+                expensesQuery = expensesQuery.Where(x => x.userId == query.UserId);
+            }
+
+            int total = await expensesQuery.SumAsync(x => x.price);
+            return total;
+        }
+
+        public async Task<int> GetExpenseMonthTotal(Guid userId)
+        {
+            QueryExpenseRequest query = new QueryExpenseRequest()
+            {
+                UserId = userId,
+                StartDate = DateTime.Now.AddDays(-30),
+                EndDate = DateTime.Now
+            };
+            return await GetExpenseTotal(query);
         }
     }
 }

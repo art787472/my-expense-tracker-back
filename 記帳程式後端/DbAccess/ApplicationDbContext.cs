@@ -14,7 +14,11 @@ namespace 記帳程式後端.DbAccess
         public DbSet<Category> Categories { get; set; }
         public DbSet<SubCategory> SubCategories { get; set; }
         public DbSet<ExpenseAccount> ExpenseAccounts { get; set; }
-        public DbSet<GoogleUserInfo> GoogleUsers { get; set; }
+        
+
+        public DbSet<Income> Incomes {  get; set; }
+        public DbSet<IncomeCategory> IncomeCategories { get; set; }
+        public DbSet<IncomeSubcategory> IncomesSubcategories { get; set; }
 
         public ApplicationDbContext (DbContextOptions<ApplicationDbContext> options) : base(options)
         {

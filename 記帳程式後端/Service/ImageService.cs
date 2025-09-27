@@ -23,18 +23,18 @@ namespace 記帳程式後端.Service
             await _storageService.DeleteAsync(id);
         }
 
-        public async Task<ImageUploadResponse> UploadImageAsync(Stream fileStream)
+        public async Task<ImageUploadResponse> UploadImageAsync(Stream fileStream, string name)
         {
-            var response = await _storageService.UploadAsync(fileStream, "name");
+            var response = await _storageService.UploadAsync(fileStream, name);
             if(!response.Success)
             {
                 return response;
             }
             var image = new ImageModel()
             {
-                StorageProvider = "Cloudinary",
-                StorageKey = response.StorageKey,
-                url = response.Url
+                StorageProvider = "Amazon",
+                StorageKey = name,
+                url = name
 
             };
 

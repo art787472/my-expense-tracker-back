@@ -14,9 +14,10 @@
         // 一般註冊
         public string? PasswordHash { get; set; }
 
-        // Google 登入
+        // 第三方 登入
         public string? GoogleId { get; set; }
         public string? GithubId { get; set; }
+        public string? LineId { get; set; }
 
         // 共同欄位
         public bool IsEmailVerified { get; set; }

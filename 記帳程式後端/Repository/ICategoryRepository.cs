@@ -6,5 +6,7 @@ namespace 記帳程式後端.Repository
     public interface ICategoryRepository
     {
         Task<List<CategoryDto>> GetCategories();
+
+        Task<List<CategoryDto>> GetIncomeCategories();
     }
 }

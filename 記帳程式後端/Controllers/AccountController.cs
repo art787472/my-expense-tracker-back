@@ -18,6 +18,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Net;
 using Microsoft.AspNetCore.DataProtection;
 using 記帳程式後端.Dto.Request;
+using Microsoft.AspNetCore.Authorization;
 namespace 記帳程式後端.Controllers
 {
     [Route("api/[controller]")]
@@ -34,6 +35,7 @@ namespace 記帳程式後端.Controllers
             _refreshTokenService = refreshTokenService;
         }
         [HttpPost("login")]
+        [AllowAnonymous]
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
             var user = await _userService.GetUserByAccount(request.Account);
@@ -61,8 +63,8 @@ namespace 記帳程式後端.Controllers
 
             var refreshTokenModel = new RefreshToken()
             {
-                AddedDate = DateTime.Now,
-                ExpiryDate = DateTime.Now.AddDays(7),
+                AddedDate = DateTime.UtcNow,
+                ExpiryDate = DateTime.UtcNow.AddDays(7),
                 Token = refreshToken,
                 UserId = user.Id
             };

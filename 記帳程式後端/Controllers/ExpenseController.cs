@@ -22,7 +22,7 @@ namespace 記帳程式後端.Controllers
             _currentUser = currentUser;
 
         }
-        
+
         [HttpGet]
         public async Task<ActionResult> GetExpensesAsync([FromQuery] QueryExpenseRequest query)
         {
@@ -31,25 +31,27 @@ namespace 記帳程式後端.Controllers
         }
 
 
-        
+
         [HttpGet("{id}")]
         public async Task<ActionResult<ExpenseDto>> GetExpenseById(int id)
         {
-            
-           var expense = await _expenseService.GetExpenseById(id);
-            
-           
-           if(expense==null)
+
+            var expense = await _expenseService.GetExpenseById(id);
+
+
+            if (expense == null)
             {
                 return NotFound(new Response(404, false));
             }
+
+
             return Ok(expense);
         }
 
 
 
-        
-       [HttpPost]
+
+        [HttpPost]
         public async Task<ActionResult> Create([FromBody] ExpenseRequest request)
         {
             var userId = _currentUser.UserId;
@@ -60,14 +62,14 @@ namespace 記帳程式後端.Controllers
 
             return CreatedAtAction(
                 actionName: nameof(GetExpenseById),
-                routeValues: new { id = newId }, 
-                value: createdExpense 
+                routeValues: new { id = newId },
+                value: createdExpense
             );
         }
 
-        
 
-        
+
+
         [HttpPut("{id}")]
         public async Task<ActionResult> EditExpense(int id, [FromBody] ExpenseRequest request)
         {
@@ -76,7 +78,7 @@ namespace 記帳程式後端.Controllers
             {
                 return NotFound(new Response(404, false));
             }
-            if (expense.User.Id != _currentUser.UserId) 
+            if (expense.User.Id != _currentUser.UserId)
             {
                 return NotFound(new Response(404, false));
             }
@@ -99,6 +101,28 @@ namespace 記帳程式後端.Controllers
             return NoContent();
         }
 
+        [HttpGet("total")]
+        public async Task<ActionResult<int>> GetExpenseTotal([FromQuery] QueryExpenseRequest query)
+        {
+            var total = await _expenseService.GetExpenseTotal(query);
+            return Ok(new ResponseData<int>(total));
 
+
+        }
+
+        [HttpGet("month-total")]
+        public async Task<ActionResult<ResponseData<int>>> GetExpenseMonthTotal()
+        {
+            QueryExpenseRequest query = new QueryExpenseRequest()
+            {
+                UserId = _currentUser.UserId,
+                StartDate = DateTime.Now.AddDays(-30),
+                EndDate = DateTime.Now
+            };
+            var total = await _expenseService.GetExpenseTotal(query);
+            return Ok(new ResponseData<int>(total));
+
+
+        }
     }
 }

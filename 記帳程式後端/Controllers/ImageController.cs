@@ -37,13 +37,13 @@ namespace 記帳程式後端.Controllers
                     
 
             var s = CompressImage.Compress(file, 20);
-            reponse = await _imageService.UploadImageAsync(s);
+            reponse = await _imageService.UploadImageAsync(s, file.FileName);
                         
                 
             
             if(reponse.Success)
             {
-                return Ok(new { count = files.Count, size, path=reponse.Url });
+                return Ok(new { count = files.Count, size, path=reponse.Url, imageId = reponse.image.Id });
             }
 
             return BadRequest(new { message = reponse.ErrorMessage });

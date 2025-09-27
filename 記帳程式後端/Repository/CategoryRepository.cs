@@ -48,5 +48,21 @@ namespace 記帳程式後端.Repository
             return categories;
 
         }
+
+        public async Task<List<CategoryDto>> GetIncomeCategories()
+        {
+            var iconMap = await _dbContext.Icons.ToDictionaryAsync(i => i.Id);
+
+            var categories = await _dbContext.Categories
+                .Select(c => new CategoryDto
+                {
+                    Id = c.Id,
+                    Name = c.Name,
+                    Icon = iconMap.ContainsKey(c.IconId) ? iconMap[c.IconId] : null
+                   
+                })
+                .ToListAsync();
+            return categories;
+        }
     }
 }

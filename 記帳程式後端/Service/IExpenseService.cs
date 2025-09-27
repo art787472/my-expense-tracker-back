@@ -12,6 +12,8 @@ namespace 記帳程式後端.Service
         Task EditExpense(int id, ExpenseRequest request);
         Task DeleteExpense(int id);
         Task<int> CreateExpense(Guid userId, ExpenseRequest request);
+        Task<int> GetExpenseTotal(QueryExpenseRequest query);
+        Task<int> GetExpenseMonthTotal(Guid userId);
         
     }
 }

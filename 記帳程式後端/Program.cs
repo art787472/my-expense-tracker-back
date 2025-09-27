@@ -2,20 +2,33 @@ using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Serilog.Events;
+using Serilog;
+using 記帳程式後端.Cashe;
+using 記帳程式後端.Contract.Cache;
 using 記帳程式後端.DbAccess;
 using 記帳程式後端.MiddleWares;
 using 記帳程式後端.Repository;
 using 記帳程式後端.Service;
+using Amazon.S3;
+using Amazon.Runtime;
+using Microsoft.Extensions.DependencyInjection;
+Serilog.Debugging.SelfLog.Enable(Console.Error);
+
+
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+var mongoConnectionString = builder.Configuration["Serilog:WriteTo:2:Args:databaseUrl"];
+
+
 
 builder.Services.AddControllers();
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-        options.UseSqlServer(builder.Configuration.GetConnectionString("WebDatabase"))
+        options.UseNpgsql(builder.Configuration.GetConnectionString("WebDatabase"))
     );
-
+builder.Services.AddScoped<HttpClient, HttpClient>();
+builder.Services.AddScoped<ICacheService, MemoryService>();
 builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
 builder.Services.AddScoped<IRefreshTokenService, RefreshTokenService>();
 builder.Services.AddScoped<IExpenseService, ExpenseService>();
@@ -24,7 +37,7 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IExpenseRepository, ExpenseRepository>();
 builder.Services.AddScoped<IImageRepository, ImageRepository>();
 builder.Services.AddScoped<IImageService, ImageService>();
-builder.Services.AddScoped<IImageStorageService, CloudinaryStorageService>();
+builder.Services.AddScoped<IImageStorageService, AmazonStorageService>();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
@@ -43,24 +56,66 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
     };
 });
 
+var logPath = Path.Combine(AppContext.BaseDirectory, "log-.txt");
+// 設定Logger
+// 替換內建 logging，使用 Serilog
+builder.Host.UseSerilog((ctx, lc) => lc
+        .MinimumLevel.Information()
+        .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
+        .Enrich.FromLogContext()
+        .WriteTo.Console()
+        .WriteTo.File(path: logPath, rollingInterval: RollingInterval.Day)
+        .WriteTo.MongoDB(
+            databaseUrl: mongoConnectionString,
+            collectionName: "applogs")
+    );
+
 builder.Services.AddHttpContextAccessor();
 // 設定CORS，讓前端存取
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowLocalhost", policy =>
+    options.AddPolicy("AllowVercelFrontend", policy =>
     {
-        policy.WithOrigins("https://localhost:3000")
-              .AllowAnyHeader()
-              .AllowAnyMethod()
-              .AllowCredentials();
+        policy
+            .WithOrigins("https://expensetracker.yichengchen.idv.tw") // 前端網域
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+        .AllowCredentials();
     });
 });
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowLLocalFrontend", policy =>
+    {
+        policy
+            .WithOrigins("https://localhost:3000") // 前端網域
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+        .AllowCredentials();
+    });
+});
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(
+        builder =>
+        {
+            builder.WithOrigins("*")
+                .WithMethods("*")
+                .WithHeaders("*");
+        });
+});
+
+builder.Services.AddMemoryCache();
 var app = builder.Build();
-app.UseCors("AllowLocalhost");
-//app.UseMiddleware<ExceptionMiddleware>();
+
+app.UseMiddleware<ExceptionMiddleware>();
 // Configure the HTTP request pipeline.
 app.UseStaticFiles();
 app.UseHttpsRedirection();
+app.UseRouting();                    // 顯式添加
+app.UseCors("AllowVercelFrontend");
+app.UseCors("AllowLLocalFrontend");
+app.UseCors();
 
 app.UseAuthentication();
 app.UseAuthorization();
@@ -68,3 +123,5 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
+

@@ -19,7 +19,7 @@ namespace 記帳程式後端.Dto
         
         public int AccountId { get; set; }
         
-        public string ImagePath { get; set; }
+        public string? ImagePath { get; set; }
 
         public bool isDelete { get; set; }
         public UserDto User { get; set; }

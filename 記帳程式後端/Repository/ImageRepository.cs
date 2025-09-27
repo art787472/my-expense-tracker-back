@@ -13,6 +13,7 @@ namespace 記帳程式後端.Repository
         public async Task<ImageModel> CreateImage(ImageModel image)
         {
             await _context.Images.AddAsync(image);
+            await _context.SaveChangesAsync();
             return image;
         }
 

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using 記帳程式後端.DbAccess;
 
@@ -11,9 +12,11 @@ using 記帳程式後端.DbAccess;
 namespace 記帳程式後端.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250802092750_AddLineIdToUser")]
+    partial class AddLineIdToUser
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -114,6 +117,39 @@ namespace 記帳程式後端.Migrations
                     b.ToTable("ExpenseAccounts");
                 });
 
+            modelBuilder.Entity("記帳程式後端.Models.GoogleUserInfo", b =>
+                {
+                    b.Property<string>("id")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("email")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("family_name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("given_name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("picture")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("verified_email")
+                        .HasColumnType("bit");
+
+                    b.HasKey("id");
+
+                    b.ToTable("GoogleUsers");
+                });
+
             modelBuilder.Entity("記帳程式後端.Models.Icon", b =>
                 {
                     b.Property<int>("Id")
@@ -154,101 +190,6 @@ namespace 記帳程式後端.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Images");
-                });
-
-            modelBuilder.Entity("記帳程式後端.Models.Income", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Name")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("accountId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("categoryId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("dateTime")
-                        .HasColumnType("datetime2");
-
-                    b.Property<bool>("isDelete")
-                        .HasColumnType("bit");
-
-                    b.Property<int?>("picPath1")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("picPath2")
-                        .HasColumnType("int");
-
-                    b.Property<int>("price")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("smallPicPath1")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("smallPicPath2")
-                        .HasColumnType("int");
-
-                    b.Property<int>("subcategoryId")
-                        .HasColumnType("int");
-
-                    b.Property<Guid>("userId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Incomes");
-                });
-
-            modelBuilder.Entity("記帳程式後端.Models.IncomeCategory", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("IconId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("IncomeCategories");
-                });
-
-            modelBuilder.Entity("記帳程式後端.Models.IncomeSubcategory", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("CategoryId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("IconId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<Guid?>("UserId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("IncomesSubcategories");
                 });
 
             modelBuilder.Entity("記帳程式後端.Models.RefreshToken", b =>

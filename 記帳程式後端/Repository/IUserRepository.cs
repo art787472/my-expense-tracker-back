@@ -14,5 +14,6 @@ namespace 記帳程式後端.Repository
         Task<User> GetUserByGoogleId(string googleId);
 
         Task<User> GetUserByGithubId(string githubId);
+        Task<User> GetUserByLineId(string lineId);
     }
 }

@@ -36,6 +36,10 @@ namespace 記帳程式後端.Service
 
         public async Task<User> GetUserByAccount(string account)
         {
+            if(account == null)
+            {
+                return null;
+            }
             return await _repository.GetUserByAccount(account);
         }
 
@@ -52,6 +56,11 @@ namespace 記帳程式後端.Service
         public async Task<User> GetUserById(Guid id)
         {
             return await _repository.GetUserById(id);
+        }
+
+        public async Task<User> GetUserByLineId(string lineId)
+        {
+            return await _repository.GetUserByLineId(lineId);
         }
 
         public async Task UpdateUser(User user)

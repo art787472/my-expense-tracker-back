@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using 記帳程式後端.Dto.Request;
 using 記帳程式後端.Repository;
 
 namespace 記帳程式後端.Controllers
@@ -13,10 +14,10 @@ namespace 記帳程式後端.Controllers
         {
             this.chartRepository = chartRepository;
         }
-
-        public IActionResult Index()
+        [HttpGet("barChart")]
+        public IActionResult Index([FromQuery]BarChartRequest request)
         {
-            return Ok(chartRepository.GetData());
+            return Ok(chartRepository.GetData(request));
         }
     }
 }
