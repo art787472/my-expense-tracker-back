@@ -1,0 +1,26 @@
+﻿using Microsoft.AspNetCore.Mvc;
+using Serilog;
+using ExpenseTracker.Aspect;
+
+namespace ExpenseTracker.Controllers
+{
+    [Route("api/[controller]")]
+    [ApiController]
+    public class HelloController : Controller
+    {
+        [WriteLog]
+        public IActionResult Index()
+        {
+            return Ok("Hello World");
+        }
+
+        [HttpGet("error")]
+        public IActionResult Error()
+        {
+            int a = 0;
+            int b = 1 / a;
+            return Ok();
+
+        }
+    }
+}

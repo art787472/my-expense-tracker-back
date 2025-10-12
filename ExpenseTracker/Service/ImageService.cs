@@ -1,0 +1,50 @@
+﻿
+
+using CloudinaryDotNet;
+using CloudinaryDotNet.Actions;
+using ExpenseTracker.Dto;
+using ExpenseTracker.Models;
+using ExpenseTracker.Repository;
+
+namespace ExpenseTracker.Service
+{
+    public class ImageService : IImageService
+    {
+        private IImageStorageService _storageService;
+        private IImageRepository _imageRepository;
+        public ImageService(IImageStorageService storageService, IImageRepository imageRepository) 
+        {
+            _storageService = storageService;
+            _imageRepository = imageRepository;
+        }
+
+        public async Task DeleteImage(string id)
+        {
+            await _storageService.DeleteAsync(id);
+        }
+
+        public async Task<ImageUploadResponse> UploadImageAsync(Stream fileStream, string name)
+        {
+            var response = await _storageService.UploadAsync(fileStream, name);
+            if(!response.Success)
+            {
+                return response;
+            }
+            var image = new ImageModel()
+            {
+                StorageProvider = "Amazon",
+                StorageKey = name,
+                url = name
+
+            };
+
+            var repositaryResponse = await _imageRepository.CreateImage(image);
+            response.image = repositaryResponse;
+            return response;
+        }
+
+       
+
+        
+    }
+}
