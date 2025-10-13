@@ -21,7 +21,9 @@ var builder = WebApplication.CreateBuilder(args);
 
 var mongoConnectionString = builder.Configuration["Serilog:WriteTo:2:Args:databaseUrl"];
 
-
+builder.Configuration
+    .AddJsonFile("appsettings.json", optional: false)
+    .AddEnvironmentVariables();
 
 builder.Services.AddControllers();
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
