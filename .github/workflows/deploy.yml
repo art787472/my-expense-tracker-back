@@ -3,7 +3,7 @@ name: Deploy to EC2
 
 on:
   push:
-    branches: [ main ]
+    branches: [ master ]
 
 jobs:
   deploy:
@@ -27,7 +27,7 @@ jobs:
     - name: Build and push Docker image
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        ECR_REPOSITORY: your-app-name
+        ECR_REPOSITORY: expense-tracker
         IMAGE_TAG: ${{ github.sha }}
       run: |
         docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
