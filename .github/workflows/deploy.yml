@@ -45,25 +45,30 @@ jobs:
       run: |
         echo "$SSH_PRIVATE_KEY" > private_key.pem
         chmod 600 private_key.pem
-        
+
         ssh -o StrictHostKeyChecking=no -i private_key.pem ${EC2_USER}@${EC2_HOST} << 'EOF'
+          # 先設定必要環境變數
+          export ECR_REGISTRY=123456789012.dkr.ecr.ap-northeast-1.amazonaws.com
+          export ECR_REPOSITORY=expense-tracker
+          export IMAGE_TAG=latest  # 或使用你想的 tag
+
           # Login to ECR
-          aws ecr get-login-password --region ap-northeast-1 | docker login --username AWS --password-stdin $ECR_REGISTRY
-          
+          aws ecr get-login-password --region ap-northeast-1 | sudo docker login --username AWS --password-stdin $ECR_REGISTRY
+
           # Pull latest image
-          docker pull $ECR_REGISTRY/$ECR_REPOSITORY:latest
-          
+          sudo docker pull $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+
           # Stop and remove old container
-          docker stop expense-tracker || true
-          docker rm expense-tracker || true
-          
+          sudo docker stop expense-tracker || true
+          sudo docker rm expense-tracker || true
+
           # Run new container
-          docker run -d \
-            --name expense-tracker\
+          sudo docker run -d \
+            --name expense-tracker \
             -p 5000:5000 \
             --restart unless-stopped \
-            $ECR_REGISTRY/$ECR_REPOSITORY:latest
-          
+            $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+
           # Clean up old images
-          docker image prune -af
+          sudo docker image prune -af
         EOF
