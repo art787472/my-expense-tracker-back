@@ -48,7 +48,7 @@ jobs:
 
         ssh -o StrictHostKeyChecking=no -i private_key.pem ${EC2_USER}@${EC2_HOST} << 'EOF'
           # 先設定必要環境變數
-          export ECR_REGISTRY=123456789012.dkr.ecr.ap-northeast-1.amazonaws.com
+          export ECR_REGISTRY=070648248469.dkr.ecr.ap-northeast-1.amazonaws.com
           export ECR_REPOSITORY=expense-tracker
           export IMAGE_TAG=latest  # 或使用你想的 tag
 
