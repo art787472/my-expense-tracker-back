@@ -41,7 +41,7 @@ jobs:
         EC2_USER: ${{ secrets.EC2_USER }}
         SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        ECR_REPOSITORY: your-app-name
+        ECR_REPOSITORY: expense-tracker
       run: |
         echo "$SSH_PRIVATE_KEY" > private_key.pem
         chmod 600 private_key.pem
@@ -54,13 +54,13 @@ jobs:
           docker pull $ECR_REGISTRY/$ECR_REPOSITORY:latest
           
           # Stop and remove old container
-          docker stop your-app || true
-          docker rm your-app || true
+          docker stop expense-tracker || true
+          docker rm expense-tracker || true
           
           # Run new container
           docker run -d \
-            --name your-app \
-            -p 80:8080 \
+            --name expense-tracker\
+            -p 5000:5000 \
             --restart unless-stopped \
             $ECR_REGISTRY/$ECR_REPOSITORY:latest
           
