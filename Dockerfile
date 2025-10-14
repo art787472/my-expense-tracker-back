@@ -1,7 +1,7 @@
 # 建立階段：有 SDK，可以編譯和還原套件
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
-EXPOSE 8888
+EXPOSE 8080
 
 # 複製 csproj 並還原（這樣快取比較有效）
 COPY ["ExpenseTracker/ExpenseTracker.csproj", "ExpenseTracker/"]
