@@ -65,7 +65,7 @@ jobs:
           # Run new container
           sudo docker run -d \
             --name expense-tracker \
-            -p 5000:5000 \
+            -p 5000:8080 \
             --restart unless-stopped \
             --env-file /home/ubuntu/env/.env \
             $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
