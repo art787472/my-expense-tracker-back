@@ -9,6 +9,7 @@ namespace ExpenseTracker.Controllers
     public class HelloController : Controller
     {
         [WriteLog]
+        [HttpGet]
         public IActionResult Index()
         {
             return Ok("Hello World");

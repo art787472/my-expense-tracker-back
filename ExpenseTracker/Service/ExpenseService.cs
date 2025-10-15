@@ -57,14 +57,19 @@ namespace ExpenseTracker.Service
         {
             var result =  await _repository.GetExpenseById(id);
 
-            string imageUrl = await _client.GetPreSignedURLAsync(new GetPreSignedUrlRequest()
+            if (result.ImagePath != null)
             {
-                BucketName = _configuration["AmazonImageBucket"],
-                Key = result.ImagePath,
-                Expires = DateTime.Now.AddMinutes(5)
-            });
 
-            result.ImagePath = result.ImagePath;
+
+                string imageUrl = await _client.GetPreSignedURLAsync(new GetPreSignedUrlRequest()
+                {
+                    BucketName = _configuration["AmazonImageBucket"],
+                    Key = result.ImagePath,
+                    Expires = DateTime.Now.AddMinutes(5)
+                });
+
+                result.ImagePath = result.ImagePath;
+            }
             return result;
         }
 
@@ -87,7 +92,10 @@ namespace ExpenseTracker.Service
 
             foreach (var item in data)
             {
-                
+                if(item.ImagePath==null)
+                {
+                    continue;
+                }
             string imageUrl = await _client.GetPreSignedURLAsync(new GetPreSignedUrlRequest()
             {
                 BucketName = _configuration["AmazonImageBucket"],

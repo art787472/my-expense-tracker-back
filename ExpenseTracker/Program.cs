@@ -16,15 +16,19 @@ using Microsoft.Extensions.DependencyInjection;
 Serilog.Debugging.SelfLog.Enable(Console.Error);
 
 
-
 var builder = WebApplication.CreateBuilder(args);
+if (builder.Environment.IsDevelopment())
+{
+    DotNetEnv.Env.Load(".env");
+}
 
-var mongoConnectionString = builder.Configuration["Serilog:WriteTo:2:Args:databaseUrl"];
 
 builder.Configuration
     .AddJsonFile("appsettings.json", optional: false)
     .AddEnvironmentVariables();
-
+var mongoConnectionString = builder.Configuration["Serilog:WriteTo:2:Args:databaseUrl"];
+builder.Services.AddEndpointsApiExplorer(); // 產生 Swagger JSON
+builder.Services.AddSwaggerGen();
 builder.Services.AddControllers();
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
         options.UseNpgsql(builder.Configuration.GetConnectionString("WebDatabase"))
@@ -109,7 +113,15 @@ builder.Services.AddCors(options =>
 
 builder.Services.AddMemoryCache();
 var app = builder.Build();
-
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
+        // c.RoutePrefix = ""; // 如果想把 Swagger UI 放在根目錄
+    });
+}
 app.UseMiddleware<ExceptionMiddleware>();
 // Configure the HTTP request pipeline.
 app.UseStaticFiles();
