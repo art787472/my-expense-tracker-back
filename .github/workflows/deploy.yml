@@ -127,6 +127,16 @@ jobs:
       - name: Test SSM connection
         run: aws ssm describe-instance-information
 
+
+      - name: Build and push Docker image
+        env:
+          REGISTRY_URL: 176.34.11.226:5001
+          IMAGE_NAME: expense-tracker
+        run: |
+          docker build -t $IMAGE_NAME:latest .
+          docker tag $IMAGE_NAME:latest $REGISTRY_URL/$IMAGE_NAME:latest
+          docker push $REGISTRY_URL/$IMAGE_NAME:latest
+
       - name: Deploy via SSM
         run: |
           aws ssm send-command \
