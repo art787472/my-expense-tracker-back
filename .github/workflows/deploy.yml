@@ -127,10 +127,10 @@ jobs:
       - name: Test SSM connection
         run: aws ssm describe-instance-information
 
-      # - name: Deploy via SSM
-      #   run: |
-      #     aws ssm send-command \
-      #       --instance-ids i-xxxxxxxxxxxx \
-      #       --document-name "AWS-RunShellScript" \
-      #       --comment "Deploy from GitHub Action" \
-      #       --parameters 'commands=["cd /app && docker-compose pull && docker-compose down && docker-compose up -d"]'
+      - name: Deploy via SSM
+        run: |
+          aws ssm send-command \
+            --instance-ids i-xxxxxxxxxxxx \
+            --document-name "AWS-RunShellScript" \
+            --comment "Deploy from GitHub Action" \
+            --parameters 'commands=["cd /app && docker-compose pull && docker-compose down && docker-compose up -d"]'
