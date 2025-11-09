@@ -145,7 +145,7 @@ jobs:
       - name: Deploy via SSM
         run: |
           aws ssm send-command \
-            --instance-ids i-xxxxxxxxxxxx \
+            --instance-ids i-07643b311c583674e \
             --document-name "AWS-RunShellScript" \
             --comment "Deploy from GitHub Action" \
             --parameters 'commands=["cd /app && docker-compose pull && docker-compose down && docker-compose up -d"]'
