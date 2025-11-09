@@ -4,11 +4,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ExpenseTracker.Controllers;
+using ExpenseTracker.DbAccess;
 using ExpenseTracker.Dto;
 using ExpenseTracker.Repository;
 using ExpenseTracker.Service;
 using FakeItEasy;
 using FluentAssertions;
+using Microsoft.EntityFrameworkCore;
 
 namespace ExpenseTracker.Test.ExpenseControllerTest
 {
@@ -27,7 +29,10 @@ namespace ExpenseTracker.Test.ExpenseControllerTest
         [Fact]
         public async void ExpenseController_GetExpenseById()
         {
-            var expense = A.Fake<ExpenseDto>();
+            // mock database => in-momory db
+            // mock other service
+
+            
             var controller = new ExpenseController(_expenseService, _currentUser);
             int expenseId = 1;
             var fakeExpense = new ExpenseDto
@@ -43,5 +48,10 @@ namespace ExpenseTracker.Test.ExpenseControllerTest
 
             result.Should().NotBeNull();
         }
+
+        
+
+
+        
     }
 }

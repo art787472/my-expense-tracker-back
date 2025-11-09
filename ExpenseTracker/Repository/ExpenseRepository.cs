@@ -33,6 +33,33 @@ namespace ExpenseTracker.Repository
             if (ex == null || ex.isDelete)
                 return null;
 
+
+         var temp =   _dbContext.Expenses
+                .Where(x => x.accountId == id)
+                .Select(x => new ExpenseDto()
+                {
+                    Id = x.Id,
+                    Name = x.Name,
+                    dateTime = x.dateTime,
+                    price = x.price,
+                    CategoryId = x.categoryId,
+                    SubCategoryId = x.subcategoryId,
+                    AccountId = x.Id,
+                    ImagePath = _dbContext.Images.First(y=>y.Id == x.picPath1).url,
+                    isDelete = ex.isDelete,
+
+                }).First();
+
+
+            return temp;
+
+
+
+
+
+
+
+
             // 檢查各個關聯是否存在
             var category = await _dbContext.Categories.FindAsync(ex.categoryId);
             var subCategory = await _dbContext.SubCategories.FindAsync(ex.subcategoryId);

@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using ExpenseTracker.Models;
+using System;
 
 namespace ExpenseTracker.DbAccess
 {
@@ -30,5 +31,7 @@ namespace ExpenseTracker.DbAccess
             base.OnModelCreating(modelBuilder);
             modelBuilder.ApplyConfigurationsFromAssembly(GetType().Assembly);
         }
+
+        
     }
 }

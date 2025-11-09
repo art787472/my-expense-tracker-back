@@ -1,101 +1,138 @@
-# .github/workflows/deploy.yml
-name: Deploy to EC2
+# # .github/workflows/deploy.yml
+# name: Deploy to EC2
+
+# on:
+#   push:
+#     branches: [ master ]
+
+# jobs:
+#   build-and-test:
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: Checkout code
+#         uses: actions/checkout@v3
+
+#       - name: Setup .NET
+#         uses: actions/setup-dotnet@v3
+#         with:
+#           dotnet-version: 8.0.x
+
+#       - name: Restore dependencies
+#         run: dotnet restore
+
+#       - name: Build
+#         run: dotnet build --no-restore --configuration Release
+
+#       - name: Run Unit Tests
+#         run: dotnet test --no-build --configuration Release --logger "trx;LogFileName=test-results.trx"
+
+#       # 可以選擇性生成 coverage
+#       # - name: Publish Test Results
+#       #   uses: actions/upload-artifact@v3
+#       #   with:
+#       #     name: test-results
+#       #     path: '**/test-results.trx'
+#   deploy:
+#     runs-on: ubuntu-latest
+    
+#     steps:
+#     - name: Checkout code
+#       uses: actions/checkout@v3
+    
+#     - name: Configure AWS credentials
+#       uses: aws-actions/configure-aws-credentials@v2
+#       with:
+#         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+#         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+#         aws-region: ap-northeast-1
+    
+#     - name: Login to Amazon ECR
+#       id: login-ecr
+#       uses: aws-actions/amazon-ecr-login@v1
+    
+#     - name: Build and push Docker image
+#       env:
+#         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+#         ECR_REPOSITORY: expense-tracker
+#         IMAGE_TAG: ${{ github.sha }}
+#       run: |
+#         docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+#         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+#         docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:latest
+#         docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+    
+#     - name: Deploy to EC2
+#       env:
+#         EC2_HOST: ${{ secrets.EC2_HOST }}
+#         EC2_USER: ${{ secrets.EC2_USER }}
+#         SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+#         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+#         ECR_REPOSITORY: expense-tracker
+#       run: |
+#         echo "$SSH_PRIVATE_KEY" > private_key.pem
+#         chmod 600 private_key.pem
+
+#         ssh -o StrictHostKeyChecking=no -i private_key.pem ${EC2_USER}@${EC2_HOST} << 'EOF'
+#           # 先設定必要環境變數
+#           export ECR_REGISTRY=070648248469.dkr.ecr.ap-northeast-1.amazonaws.com
+#           export ECR_REPOSITORY=expense-tracker
+#           export IMAGE_TAG=latest  # 或使用你想的 tag
+
+#           # Login to ECR
+#           aws ecr get-login-password --region ap-northeast-1 | sudo docker login --username AWS --password-stdin $ECR_REGISTRY
+
+#           # Pull latest image
+#           sudo docker pull $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+
+#           # Stop and remove old container
+#           sudo docker stop expense-tracker || true
+#           sudo docker rm expense-tracker || true
+
+#           # Run new container
+#           sudo docker run -d \
+#             --name expense-tracker \
+#             -p 5000:8080 \
+#             --restart unless-stopped \
+#             --env-file /home/ubuntu/env/.env \
+#             $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+
+#           # Clean up old images
+#           sudo docker image prune -af
+#         EOF
+
+
+name: Deploy via OIDC + SSM
 
 on:
   push:
-    branches: [ master ]
+    branches:
+      - main   # 或你的分支名稱
+
+permissions:
+  id-token: write      # 必須有這行，允許 OIDC token 發行
+  contents: read
 
 jobs:
-  build-and-test:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v3
-        with:
-          dotnet-version: 8.0.x
-
-      - name: Restore dependencies
-        run: dotnet restore
-
-      - name: Build
-        run: dotnet build --no-restore --configuration Release
-
-      - name: Run Unit Tests
-        run: dotnet test --no-build --configuration Release --logger "trx;LogFileName=test-results.trx"
-
-      # 可以選擇性生成 coverage
-      # - name: Publish Test Results
-      #   uses: actions/upload-artifact@v3
-      #   with:
-      #     name: test-results
-      #     path: '**/test-results.trx'
   deploy:
     runs-on: ubuntu-latest
-    
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
-    
-    - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v2
-      with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: ap-northeast-1
-    
-    - name: Login to Amazon ECR
-      id: login-ecr
-      uses: aws-actions/amazon-ecr-login@v1
-    
-    - name: Build and push Docker image
-      env:
-        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        ECR_REPOSITORY: expense-tracker
-        IMAGE_TAG: ${{ github.sha }}
-      run: |
-        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-        docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:latest
-        docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
-    
-    - name: Deploy to EC2
-      env:
-        EC2_HOST: ${{ secrets.EC2_HOST }}
-        EC2_USER: ${{ secrets.EC2_USER }}
-        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        ECR_REPOSITORY: expense-tracker
-      run: |
-        echo "$SSH_PRIVATE_KEY" > private_key.pem
-        chmod 600 private_key.pem
+      - name: Checkout repo
+        uses: actions/checkout@v4
 
-        ssh -o StrictHostKeyChecking=no -i private_key.pem ${EC2_USER}@${EC2_HOST} << 'EOF'
-          # 先設定必要環境變數
-          export ECR_REGISTRY=070648248469.dkr.ecr.ap-northeast-1.amazonaws.com
-          export ECR_REPOSITORY=expense-tracker
-          export IMAGE_TAG=latest  # 或使用你想的 tag
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::070648248469:role/githubRole
+          aws-region: ap-northeast-1
 
-          # Login to ECR
-          aws ecr get-login-password --region ap-northeast-1 | sudo docker login --username AWS --password-stdin $ECR_REGISTRY
+      - name: Test SSM connection
+        run: aws ssm describe-instance-information
 
-          # Pull latest image
-          sudo docker pull $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-
-          # Stop and remove old container
-          sudo docker stop expense-tracker || true
-          sudo docker rm expense-tracker || true
-
-          # Run new container
-          sudo docker run -d \
-            --name expense-tracker \
-            -p 5000:8080 \
-            --restart unless-stopped \
-            --env-file /home/ubuntu/env/.env \
-            $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-
-          # Clean up old images
-          sudo docker image prune -af
-        EOF
+      # - name: Deploy via SSM
+      #   run: |
+      #     aws ssm send-command \
+      #       --instance-ids i-xxxxxxxxxxxx \
+      #       --document-name "AWS-RunShellScript" \
+      #       --comment "Deploy from GitHub Action" \
+      #       --parameters 'commands=["cd /app && docker-compose pull && docker-compose down && docker-compose up -d"]'

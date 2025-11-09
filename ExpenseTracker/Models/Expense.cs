@@ -32,6 +32,8 @@ namespace ExpenseTracker.Models
 
         public bool isDelete { get; set; }
         public Guid userId { get; set; }
-        
+
+        public ImageModel Image { get; set; }
+
     }
 }
