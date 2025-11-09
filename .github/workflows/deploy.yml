@@ -97,11 +97,9 @@
 #             $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
 #           # Clean up old images
-#           sudo docker image prune -af
-#         EOF
+#           sud
 
-
-name: Deploy via OIDC + SSM
+name: Deploy via OIDC + SSM2
 
 on:
   push:
