@@ -99,12 +99,12 @@
 #           # Clean up old images
 #           sud
 
-name: Deploy via OIDC + SSM2
+name: Deploy via OIDC + SSM
 
 on:
   push:
     branches:
-      - main   # 或你的分支名稱
+      - master   # 或你的分支名稱
 
 permissions:
   id-token: write      # 必須有這行，允許 OIDC token 發行
