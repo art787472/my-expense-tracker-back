@@ -148,4 +148,5 @@ jobs:
             --instance-ids i-07643b311c583674e \
             --document-name "AWS-RunShellScript" \
             --comment "Deploy from GitHub Action" \
-            --parameters 'commands=["sudo su && cd /app && docker-compose pull && docker-compose down && docker-compose up -d"]'
+            
+            --parameters 'commands=["sudo su && cd /home/ubuntu/docker_compose  && touch test && docker-compose pull && docker-compose down && docker-compose up -d"]'
