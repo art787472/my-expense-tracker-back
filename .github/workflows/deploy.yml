@@ -135,7 +135,7 @@ jobs:
 
       - name: Build and push Docker image
         env:
-          REGISTRY_URL: 176.34.11.226:5001
+          REGISTRY_URL: 176.34.11.226
           IMAGE_NAME: expense-tracker
         run: |
           docker build -t $IMAGE_NAME:latest .

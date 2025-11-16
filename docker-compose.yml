@@ -94,7 +94,7 @@ services:
     container_name: registry-ui
     environment:
       - REGISTRY_TITLE=ExpenseTracker Registry
-      - REGISTRY_URL=http://registry
+      - REGISTRY_URL=http://registry:5000
       - SINGLE_REGISTRY=true
     ports:
       - "8080:80"
