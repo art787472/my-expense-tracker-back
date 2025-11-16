@@ -13,67 +13,6 @@
 #   #   restart: always
 #   #   networks:
 #   #     - webnet
-
-#   registry:
-#     image: registry:2
-#     container_name: registry
-#     ports:
-#       - "5001:5000"
-#     restart: always
-#     networks:
-#       - webnet
-
-#   joxit-ui:
-#     image: joxit/docker-registry-ui:latest
-#     container_name: registry-ui
-#     environment:
-#       - REGISTRY_TITLE=ExpenseTracker Registry
-#       - REGISTRY_URL=http://registry:5000
-#     ports:
-#       - "8080:80"
-#     restart: always
-#     networks:
-#       - webnet
-
-#   # postgres:
-#   #   image: postgres:16
-#   #   container_name: postgresdb
-#   #   ports:
-#   #     - "6543:5432"
-#   #   environment:
-#   #     POSTGRES_USER: myuser
-#   #     POSTGRES_PASSWORD: mypassword
-#   #     POSTGRES_DB: expensetrackerdb
-#   #   volumes:
-#   #     - pgdata:/var/lib/postgresql/data
-#   #   networks:
-#   #     - webnet
-
-#   # mongo:
-#   #   image: mongo:6.0
-#   #   container_name: mongodb
-#   #   ports:
-#   #     - "27017:27017"
-#   #   environment:
-#   #     MONGO_INITDB_ROOT_USERNAME: myuser
-#   #     MONGO_INITDB_ROOT_PASSWORD: mypassword
-#   #   volumes:
-#   #     - mongo-data:/data/db
-#   #   networks:
-#   #     - webnet
-
-# networks:
-#   webnet:
-
-# volumes:
-#   mongo-data:
-
-
-
-
-
-
-
 services:
   registry:
     image: registry:2
