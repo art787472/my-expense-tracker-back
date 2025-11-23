@@ -103,8 +103,7 @@ name: Deploy via OIDC + SSM
 
 on:
   push:
-    branches:
-      - master   # 或你的分支名稱
+    branches: [ master, dev ]
 
 permissions:
   id-token: write      # 必須有這行，允許 OIDC token 發行
@@ -113,6 +112,15 @@ permissions:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        env:
+          - { name: "prod", branch: "master", ec2: "${{ secrets.PROD_EC2_ID }}", compose: "docker-compose.prod.yml" }
+          - { name: "dev",  branch: "dev",  ec2: "${{ secrets.DEV_EC2_ID }}",  compose: "docker-compose.dev.yml" }
+
+    # 只部署符合 branch 的那個環境
+    if: github.ref_name == matrix.env.branch
 
     steps:
       - name: Checkout repo

@@ -1,0 +1,62 @@
+
+services:
+  registry:
+    image: registry:2
+    container_name: registry
+    ports:
+      - "5001:5000"
+    restart: always
+    environment:
+      - REGISTRY_HTTP_HEADERS_Access-Control-Allow-Origin=['*']
+      - REGISTRY_HTTP_HEADERS_Access-Control-Allow-Methods=['HEAD','GET','OPTIONS','DELETE']
+      - REGISTRY_HTTP_HEADERS_Access-Control-Allow-Headers=['Authorization','Accept','Cache-Control']
+      - REGISTRY_HTTP_HEADERS_Access-Control-Expose-Headers=['Docker-Content-Digest']
+    networks:
+      - webnet
+      
+  joxit-ui:
+    image: joxit/docker-registry-ui:latest
+    container_name: registry-ui
+    environment:
+      - REGISTRY_TITLE=ExpenseTracker Registry
+      - NGINX_PROXY_PASS_URL=http://registry:5000
+      - SINGLE_REGISTRY=true
+    ports:
+      - "8080:80"
+    restart: always
+    networks:
+      - webnet
+    depends_on:
+      - registry
+
+
+  # postgres:
+  #   image: postgres:16
+  #   container_name: postgresdb
+  #   ports:
+  #     - "6543:5432"
+  #   environment:
+  #     POSTGRES_USER: myuser
+  #     POSTGRES_PASSWORD: mypassword
+  #     POSTGRES_DB: expensetrackerdb
+  #   volumes:
+  #     - pgdata:/var/lib/postgresql/data
+  #   networks:
+  #     - webnet
+  # mongo:
+  #   image: mongo:6.0
+  #   container_name: mongodb
+  #   ports:
+  #     - "27017:27017"
+  #   environment:
+  #     MONGO_INITDB_ROOT_USERNAME: myuser
+  #     MONGO_INITDB_ROOT_PASSWORD: mypassword
+  #   volumes:
+  #     - mongo-data:/data/db
+  #   networks:
+  #     - webnet
+volumes:
+  pgdata:
+  # mongo-data:
+networks:
+  webnet:

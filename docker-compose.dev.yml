@@ -55,6 +55,7 @@ services:
   #     - mongo-data:/data/db
   #   networks:
   #     - webnet
-
+volumes:
+  pgdata:
 networks:
   webnet:
