@@ -1,18 +1,4 @@
 
-
-# services:
-#   # web:
-#   #   image: expensetracker:latest
-#   #   build:
-#   #     context: .
-#   #     dockerfile: Dockerfile
-#   #   ports:
-#   #     - "5000:80"
-#   #   env_file:
-#   #     - .env
-#   #   restart: always
-#   #   networks:
-#   #     - webnet
 services:
   registry:
     image: registry:2
@@ -57,18 +43,18 @@ services:
       - pgdata:/var/lib/postgresql/data
     networks:
       - webnet
-  mongo:
-    image: mongo:6.0
-    container_name: mongodb
-    ports:
-      - "27017:27017"
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: myuser
-      MONGO_INITDB_ROOT_PASSWORD: mypassword
-    volumes:
-      - mongo-data:/data/db
-    networks:
-      - webnet
+  # mongo:
+  #   image: mongo:6.0
+  #   container_name: mongodb
+  #   ports:
+  #     - "27017:27017"
+  #   environment:
+  #     MONGO_INITDB_ROOT_USERNAME: myuser
+  #     MONGO_INITDB_ROOT_PASSWORD: mypassword
+  #   volumes:
+  #     - mongo-data:/data/db
+  #   networks:
+  #     - webnet
 
 networks:
   webnet:
