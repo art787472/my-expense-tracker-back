@@ -30,19 +30,19 @@ services:
       - registry
 
 
-  postgres:
-    image: postgres:16
-    container_name: postgresdb
-    ports:
-      - "6543:5432"
-    environment:
-      POSTGRES_USER: myuser
-      POSTGRES_PASSWORD: mypassword
-      POSTGRES_DB: expensetrackerdb
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-    networks:
-      - webnet
+  # postgres:
+  #   image: postgres:16
+  #   container_name: postgresdb
+  #   ports:
+  #     - "6543:5432"
+  #   environment:
+  #     POSTGRES_USER: myuser
+  #     POSTGRES_PASSWORD: mypassword
+  #     POSTGRES_DB: expensetrackerdb
+  #   volumes:
+  #     - pgdata:/var/lib/postgresql/data
+  #   networks:
+  #     - webnet
   # mongo:
   #   image: mongo:6.0
   #   container_name: mongodb
