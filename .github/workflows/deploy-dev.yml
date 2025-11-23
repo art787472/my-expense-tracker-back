@@ -1,0 +1,71 @@
+name: Deploy Development Environment
+
+on:
+  push:
+    branches: 
+      - dev
+
+permissions:
+  id-token: write      # 必須有這行，允許 OIDC token 發行
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+   
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::070648248469:role/githubRole
+          aws-region: ap-northeast-1
+
+      - name: Test SSM connection
+        run: aws ssm describe-instance-information
+
+      - name: Allow insecure Docker registry
+        run: |
+          echo '{"insecure-registries": ["176.34.11.226:5001"]}' | sudo tee /etc/docker/daemon.json
+          sudo systemctl restart docker
+          sleep 5
+
+      - name: Build and push Docker image
+        env:
+          REGISTRY_URL: 176.34.11.226:5001
+          IMAGE_NAME: expense-tracker
+        run: |
+          docker build -t $IMAGE_NAME:latest .
+          docker tag $IMAGE_NAME:latest $REGISTRY_URL/$IMAGE_NAME:latest
+          docker push $REGISTRY_URL/$IMAGE_NAME:latest
+
+      - name: Upload docker-compose.yml to S3
+        run: |
+          aws s3 cp docker-compose.dev.yml s3://imagebucket-32165465/deploy/docker-compose.dev.yml
+
+      - name: Create SSM command JSON
+        run: |
+          cat << EOF > ssm.json
+          {
+            "commands": [
+              "aws s3 cp s3://imagebucket-32165465/deploy/docker-compose.dev.yml /home/ubuntu/docker_compose/docker-compose.dev.yml",
+              "cd /home/ubuntu/docker_compose",
+              "docker compose pull",
+              "docker compose down",
+              "docker compose up -d"
+            ]
+          }
+          EOF
+
+      - name: Deploy to EC2 via SSM
+        run: |
+          aws ssm send-command \
+            --instance-ids i-07896ae66a5e1b6ba \
+            --document-name "AWS-RunShellScript" \
+            --comment "Deploy from GitHub Action" \
+            --parameters file://ssm.json \
+            --output text

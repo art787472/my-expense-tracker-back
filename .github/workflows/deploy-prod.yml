@@ -103,7 +103,8 @@ name: Deploy via OIDC + SSM
 
 on:
   push:
-    branches: [ master, dev ]
+    branches: 
+      - master
 
 permissions:
   id-token: write      # 必須有這行，允許 OIDC token 發行
@@ -113,14 +114,7 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        env:
-          - { name: "prod", branch: "master", ec2: "${{ secrets.PROD_EC2_ID }}", compose: "docker-compose.prod.yml" }
-          - { name: "dev",  branch: "dev",  ec2: "${{ secrets.DEV_EC2_ID }}",  compose: "docker-compose.dev.yml" }
-
-    # 只部署符合 branch 的那個環境
-    if: github.ref_name == matrix.env.branch
+   
 
     steps:
       - name: Checkout repo
@@ -152,14 +146,14 @@ jobs:
 
       - name: Upload docker-compose.yml to S3
         run: |
-          aws s3 cp docker-compose.yml s3://imagebucket-32165465/deploy/docker-compose.yml
+          aws s3 cp docker-compose.prod.yml s3://imagebucket-32165465/deploy/docker-compose.prod.yml
 
       - name: Create SSM command JSON
         run: |
           cat << EOF > ssm.json
           {
             "commands": [
-              "aws s3 cp s3://imagebucket-32165465/deploy/docker-compose.yml /home/ubuntu/docker_compose/docker-compose.yml",
+              "aws s3 cp s3://imagebucket-32165465/deploy/docker-compose.prod.yml /home/ubuntu/docker_compose/docker-compose.prod.yml",
               "cd /home/ubuntu/docker_compose",
               "docker compose pull",
               "docker compose down",
