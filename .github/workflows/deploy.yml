@@ -142,11 +142,29 @@ jobs:
           docker tag $IMAGE_NAME:latest $REGISTRY_URL/$IMAGE_NAME:latest
           docker push $REGISTRY_URL/$IMAGE_NAME:latest
 
-      - name: Deploy via SSM
+      - name: Upload docker-compose.yml to S3
+        run: |
+          aws s3 cp docker-compose.yml s3://imagebucket-32165465/deploy/docker-compose.yml
+
+      - name: Create SSM command JSON
+        run: |
+          cat << EOF > ssm.json
+          {
+            "commands": [
+              "aws s3 cp s3://imagebucket-32165465/deploy/docker-compose.yml /home/ubuntu/docker_compose/docker-compose.yml",
+              "cd /home/ubuntu/docker_compose",
+              "docker-compose pull",
+              "docker-compose down",
+              "docker-compose up -d"
+            ]
+          }
+          EOF
+
+      - name: Deploy to EC2 via SSM
         run: |
           aws ssm send-command \
             --instance-ids i-07643b311c583674e \
             --document-name "AWS-RunShellScript" \
             --comment "Deploy from GitHub Action" \
-            
-            --parameters 'commands=["sudo su && cd /home/ubuntu/docker_compose  && touch test && docker-compose pull && docker-compose down && docker-compose up -d"]'
+            --parameters file://ssm.json \
+            --output text
