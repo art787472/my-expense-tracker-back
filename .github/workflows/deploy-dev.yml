@@ -64,7 +64,7 @@ jobs:
       - name: Deploy to EC2 via SSM
         run: |
           aws ssm send-command \
-            --instance-ids i-07896ae66a5e1b6ba \
+            --instance-ids i-05ef5d2bef3613047 \
             --document-name "AWS-RunShellScript" \
             --comment "Deploy from GitHub Action" \
             --parameters file://ssm.json \
