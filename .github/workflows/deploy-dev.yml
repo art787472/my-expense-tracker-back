@@ -54,9 +54,9 @@ jobs:
             "commands": [
               "aws s3 cp s3://imagebucket-32165465/deploy/docker-compose.dev.yml /home/ubuntu/docker_compose/docker-compose.dev.yml",
               "cd /home/ubuntu/docker_compose",
-              "docker compose pull",
-              "docker compose down",
-              "docker compose up -d"
+              "docker compose -f docker-compose.dev.yml pull",
+              "docker compose -f docker-compose.dev.yml down",
+              "docker compose -f docker-compose.dev.yml up -d"
             ]
           }
           EOF
