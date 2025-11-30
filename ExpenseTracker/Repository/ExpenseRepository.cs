@@ -34,28 +34,28 @@ namespace ExpenseTracker.Repository
                 return null;
 
 
-         var temp =   _dbContext.Expenses
-                .Where(x => x.accountId == id)
-                .Select(x => new ExpenseDto()
-                {
-                    Id = x.Id,
-                    Name = x.Name,
-                    dateTime = x.dateTime,
-                    price = x.price,
-                    CategoryId = x.categoryId,
-                    SubCategoryId = x.subcategoryId,
-                    AccountId = x.Id,
-                    ImagePath = _dbContext.Images.First(y=>y.Id == x.picPath1).url,
-                    isDelete = ex.isDelete,
+            var temp = _dbContext.Expenses
+                   .Where(x => x.accountId == id)
+                   .Select(x => new ExpenseDto()
+                   {
+                       Id = x.Id,
+                       Name = x.Name,
+                       dateTime = x.dateTime,
+                       price = x.price,
+                       CategoryId = x.categoryId,
+                       SubCategoryId = x.subcategoryId,
+                       AccountId = x.Id,
+                       ImagePath = _dbContext.Images.First(y => y.Id == x.picPath1).url,
+                       isDelete = ex.isDelete,
 
-                }).First();
+                   }).First();
 
 
             return temp;
 
 
             
-
+            
 
 
 
